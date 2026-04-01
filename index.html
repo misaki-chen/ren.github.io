@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>任总的工具箱</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Microsoft YaHei", "SimSun", Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: white;
+      font-size: 36px;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 16px;
+      margin-bottom: 48px;
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 24px;
+    }
+
+    .tool-card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px 24px;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .tool-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .tool-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin-bottom: 16px;
+    }
+
+    .tool-card:nth-child(1) .tool-icon { background: linear-gradient(135deg, #ff9a56, #ff6a00); }
+    .tool-card:nth-child(2) .tool-icon { background: linear-gradient(135deg, #36d1dc, #5b86e5); }
+    .tool-card:nth-child(3) .tool-icon { background: linear-gradient(135deg, #a8e063, #56ab2f); }
+    .tool-card:nth-child(4) .tool-icon { background: linear-gradient(135deg, #f093fb, #f5576c); }
+
+    .tool-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .tool-desc {
+      font-size: 14px;
+      color: #888;
+      line-height: 1.5;
+    }
+
+    .footer {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 60px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>任总的工具箱</h1>
+    <p class="subtitle">常用小工具合集，点击卡片即可使用</p>
+
+    <div class="tools-grid">
+      <a class="tool-card" href="authorization_letter_date.html">
+        <div class="tool-icon">&#128197;</div>
+        <div class="tool-title">授权书 - 带时间版</div>
+        <div class="tool-desc">提货签名委托授权书生成器，支持设置授权时间范围</div>
+      </a>
+
+      <a class="tool-card" href="authorization_letter_multiple_副本.html">
+        <div class="tool-icon">&#128203;</div>
+        <div class="tool-title">授权书 - 批量版</div>
+        <div class="tool-desc">批量生成提货签名委托授权书</div>
+      </a>
+
+      <a class="tool-card" href="authorization_letter_multiple_多格式.html">
+        <div class="tool-icon">&#128196;</div>
+        <div class="tool-title">授权书 - 多格式版</div>
+        <div class="tool-desc">支持多种格式的批量授权书生成</div>
+      </a>
+
+      <a class="tool-card" href="authorization_letter_multiple_多格式_副本.html">
+        <div class="tool-icon">&#128221;</div>
+        <div class="tool-title">授权书 - 多格式副本</div>
+        <div class="tool-desc">多格式授权书生成器（备用版本）</div>
+      </a>
+    </div>
+
+    <div class="footer">Powered by GitHub Pages</div>
+  </div>
+</body>
+</html>
