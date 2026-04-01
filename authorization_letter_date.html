@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>提货签名委托授权书生成器-带时间版本</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: "Microsoft YaHei", "SimSun", Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+      font-size: 32px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .form-section {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      margin-bottom: 30px;
+    }
+    
+    .form-section h2 {
+      color: #333;
+      margin-bottom: 25px;
+      font-size: 20px;
+      border-bottom: 2px solid #409EFF;
+      padding-bottom: 10px;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    
+    .form-group label .required {
+      color: #f56c6c;
+      margin-right: 4px;
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+    
+    .form-group input:focus {
+      outline: none;
+      border-color: #409EFF;
+      box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.1);
+    }
+    
+    .button-group {
+      text-align: center;
+      margin-top: 30px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+    
+    .btn {
+      padding: 14px 40px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn-primary {
+      background: #409EFF;
+      color: white;
+      box-shadow: 0 4px 15px rgba(64, 158, 255, 0.4);
+    }
+    
+    .btn-primary:hover {
+      background: #66b1ff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(64, 158, 255, 0.5);
+    }
+    
+    .btn-success {
+      background: #67C23A;
+      color: white;
+      box-shadow: 0 4px 15px rgba(103, 194, 58, 0.4);
+    }
+    
+    .btn-success:hover {
+      background: #85ce61;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(103, 194, 58, 0.5);
+    }
+    
+    .btn:active {
+      transform: translateY(0);
+    }
+    
+    .preview-section {
+      background: white;
+      padding: 60px 80px;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      display: none;
+      margin-top: 30px;
+    }
+    
+    .preview-section.show {
+      display: block;
+      animation: fadeIn 0.5s ease-in;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .preview-header {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #67C23A;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    
+    .document-title {
+      text-align: center;
+      font-size: 26px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      color: #000;
+      letter-spacing: 2px;
+    }
+    
+    .document-body {
+      font-size: 16px;
+      line-height: 2.2;
+      color: #000;
+    }
+    
+    .document-body .recipient {
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+    
+    .document-body .content-line {
+      text-indent: 2em;
+      margin-bottom: 5px;
+      line-height: 2.2;
+    }
+    
+    .document-body .underline {
+      border-bottom: 1px solid #000;
+      display: inline-block;
+      min-width: 120px;
+      text-align: center;
+      padding: 0 10px;
+      margin: 0 5px;
+    }
+    
+    .signature-section {
+      margin-top: 60px;
+      text-align: right;
+      padding-right: 50px;
+    }
+    
+    .signature-section .line {
+      margin: 25px 0;
+      font-size: 16px;
+    }
+    
+    .date-section {
+      margin-top: 40px;
+      text-align: right;
+      padding-right: 50px;
+      font-size: 16px;
+    }
+    
+    .tips {
+      background: #f0f9ff;
+      border-left: 4px solid #409EFF;
+      padding: 15px 20px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+      color: #606266;
+      font-size: 14px;
+    }
+    
+    .tips strong {
+      color: #409EFF;
+    }
+    
+    @media print {
+      body {
+        background: white;
+      }
+      .form-section, .button-group, .preview-header {
+        display: none;
+      }
+      .preview-section {
+        box-shadow: none;
+        padding: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📄 提货签名委托授权书生成器</h1>
+    
+    <div class="form-section">
+      <h2>📝 填写授权信息</h2>
+      
+      <div class="tips">
+        <strong>💡 使用说明：</strong>填写完信息后，点击"预览文档"查看效果，确认无误后点击"导出Word文档"即可下载。
+      </div>
+      
+      <!-- 快捷输入区 -->
+      <div class="form-group">
+        <label for="quickInput">🚀 快捷输入（可选）：</label>
+        <textarea id="quickInput" rows="5" style="width: 100%; padding: 12px 15px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px; font-family: monospace; resize: vertical;" placeholder="粘贴信息后点击「自动填充」按钮，支持格式如：&#10;车牌: 粤BES158&#10;司机: 田杨钊&#10;司机身份证号: 610430198410140015&#10;司机手机号: 13502810512"></textarea>
+        <button class="btn btn-primary" onclick="autoFillForm()" style="margin-top: 10px;">
+          <span>✨</span>
+          <span>自动填充</span>
+        </button>
+      </div>
+      
+      <div style="text-align: center; margin: 20px 0; color: #999; font-size: 14px;">
+        ——— 或手动填写 ———
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="licensePlate"><span class="required">*</span>车牌号码：</label>
+          <input type="text" id="licensePlate" value="粤BGE633" placeholder="例如：粤BGE633">
+        </div>
+        
+        <div class="form-group">
+          <label for="driverName"><span class="required">*</span>司机姓名：</label>
+          <input type="text" id="driverName" value="龙开飞" placeholder="例如：龙开飞">
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="idNumber"><span class="required">*</span>身份证号码：</label>
+          <input type="text" id="idNumber" value="43052719760213361X" placeholder="例如：43052719760213361X" maxlength="18">
+        </div>
+        
+        <div class="form-group">
+          <label for="phoneNumber"><span class="required">*</span>手机号码：</label>
+          <input type="text" id="phoneNumber" value="13802261439" placeholder="例如：13802261439" maxlength="11">
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="itemCount">提货件数：</label>
+          <input type="text" id="itemCount" value="" placeholder="留空或填写具体数字">
+        </div>
+        
+        <div class="form-group">
+          <label for="handler">经手人：</label>
+          <input type="text" id="handler" value="任焱明" placeholder="例如：任焱明">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="docDate">日期：</label>
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <input type="date" id="docDate" value="">
+            <label style="display: inline-flex; align-items: center; gap: 5px; font-weight: normal; cursor: pointer; white-space: nowrap;">
+              <input type="checkbox" id="noDate" onchange="document.getElementById('docDate').disabled = this.checked;"> 不需要日期
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="button-group">
+        <button class="btn btn-primary" onclick="previewDocument()">
+          <span>👁️</span>
+          <span>预览文档</span>
+        </button>
+        <button id="exportBtn" class="btn btn-success" onclick="exportToWord()">
+          <span>📥</span>
+          <span>导出Word文档</span>
+        </button>
+      </div>
+    </div>
+    
+    <div class="preview-section" id="previewSection">
+      <div class="preview-header">✅ 文档预览 - 确认信息无误后可导出Word</div>
+      <div id="documentContent">
+        <div class="document-title">提货签名委托授权书</div>
+        
+        <div class="document-body">
+          <div class="recipient">致：东莞市光普实业发展有限公司</div>
+          
+          <div class="content-line">
+            我公司现委托<span class="underline" id="preview_driverName1">龙开飞</span>身份证号码：<span class="underline" id="preview_idNumber1">43052719760213361X</span>，
+          </div>
+          
+          <div style="text-indent: 0;">
+            车牌号码：<span class="underline" id="preview_licensePlate">粤BGE633</span>，手机号码：<span class="underline" id="preview_phoneNumber">13802261439</span> 前往贵公司提取货物<span class="underline" id="preview_itemCount_display">共&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;件</span>，具体以贵公司《销售出库单》等单据为准）。并授权<span class="underline" id="preview_driverName2">龙开飞</span>身份证号码：<span class="underline" id="preview_idNumber2">43052719760213361X</span>，签收贵公司《销售出库单》等单据，签名样式为<span class="underline" id="preview_driverName3">龙开飞</span>我公司愿意对该人员签收的贵公司《销售出库单》等单据上的货物承担法律责任。
+          </div>
+          
+          <div class="signature-section">
+            <div class="line">公&nbsp;&nbsp;司（公章）：</div>
+            <div class="line">经手人（签名）：<span class="underline" id="preview_handler">任焱明</span></div>
+          </div>
+          
+          <div class="date-section">
+            <div id="preview_date">2026年 03 月 02 日</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 引入docx生成库 -->
+  <script src="https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+  
+  <script>
+    /**
+     * 自动填充表单
+     */
+    function autoFillForm() {
+      const quickInput = document.getElementById('quickInput').value.trim();
+      
+      if (!quickInput) {
+        alert('❌ 请先粘贴信息到快捷输入框！');
+        return;
+      }
+      
+      // 解析文本，支持多种格式
+      const lines = quickInput.split('\n');
+      let licensePlate = '';
+      let driverName = '';
+      let idNumber = '';
+      let phoneNumber = '';
+      
+      for (let line of lines) {
+        line = line.trim();
+        if (!line) continue;
+        
+        // 匹配车牌
+        if (/车牌|车牌号|车号/i.test(line)) {
+          licensePlate = line.split(/[:：]/)[1]?.trim() || '';
+        }
+        // 匹配司机姓名
+        else if (/司机|姓名|驾驶员/i.test(line) && !/身份证|手机/i.test(line)) {
+          driverName = line.split(/[:：]/)[1]?.trim() || '';
+        }
+        // 匹配身份证
+        else if (/身份证/i.test(line)) {
+          idNumber = line.split(/[:：]/)[1]?.trim() || '';
+        }
+        // 匹配手机号
+        else if (/手机|电话/i.test(line)) {
+          phoneNumber = line.split(/[:：]/)[1]?.trim() || '';
+        }
+      }
+      
+      // 填充到表单
+      if (licensePlate) {
+        document.getElementById('licensePlate').value = licensePlate;
+      }
+      if (driverName) {
+        document.getElementById('driverName').value = driverName;
+      }
+      if (idNumber) {
+        document.getElementById('idNumber').value = idNumber.toUpperCase();
+      }
+      if (phoneNumber) {
+        document.getElementById('phoneNumber').value = phoneNumber;
+      }
+      
+      // 验证填充结果
+      let filled = [];
+      let missing = [];
+      
+      if (licensePlate) filled.push('车牌号码');
+      else missing.push('车牌号码');
+      
+      if (driverName) filled.push('司机姓名');
+      else missing.push('司机姓名');
+      
+      if (idNumber) filled.push('身份证号码');
+      else missing.push('身份证号码');
+      
+      if (phoneNumber) filled.push('手机号码');
+      else missing.push('手机号码');
+      
+      let message = '✅ 自动填充完成！\n\n';
+      if (filled.length > 0) {
+        message += '已填充：' + filled.join('、') + '\n';
+      }
+      if (missing.length > 0) {
+        message += '\n⚠️ 未识别：' + missing.join('、') + '\n请手动补充';
+      }
+      
+      // alert(message);
+      
+      // 保留快捷输入框内容，不清空
+    }
+    
+    /**
+     * 获取当前日期
+     * @returns {string} 格式化的日期字符串
+     */
+    function getCurrentDate() {
+      const dateInput = document.getElementById('docDate').value;
+      const now = dateInput ? new Date(dateInput) : new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      return `${year}年 ${month} 月 ${day} 日`;
+    }
+    
+    /**
+     * 验证身份证号码格式
+     * @param {string} idNumber - 身份证号码
+     * @returns {boolean} 是否有效
+     */
+    function validateIdNumber(idNumber) {
+      const reg = /(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/;
+      return reg.test(idNumber);
+    }
+    
+    /**
+     * 验证手机号码格式
+     * @param {string} phoneNumber - 手机号码
+     * @returns {boolean} 是否有效
+     */
+    function validatePhoneNumber(phoneNumber) {
+      const reg = /^1[3-9]\d{9}$/;
+      return reg.test(phoneNumber);
+    }
+    
+    /**
+     * 预览文档
+     */
+    function previewDocument() {
+      // 验证表单
+      if (!validateForm()) {
+        return;
+      }
+      
+      updatePreview();
+      const previewSection = document.getElementById('previewSection');
+      previewSection.classList.add('show');
+      previewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    
+    /**
+     * 验证表单
+     * @returns {boolean} 表单是否有效
+     */
+    function validateForm() {
+      const licensePlate = document.getElementById('licensePlate').value.trim();
+      const driverName = document.getElementById('driverName').value.trim();
+      const idNumber = document.getElementById('idNumber').value.trim();
+      const phoneNumber = document.getElementById('phoneNumber').value.trim();
+      
+      if (!licensePlate) {
+        alert('❌ 请输入车牌号码！');
+        document.getElementById('licensePlate').focus();
+        return false;
+      }
+      
+      if (!driverName) {
+        alert('❌ 请输入司机姓名！');
+        document.getElementById('driverName').focus();
+        return false;
+      }
+      
+      if (!idNumber) {
+        alert('❌ 请输入身份证号码！');
+        document.getElementById('idNumber').focus();
+        return false;
+      }
+      
+      if (!validateIdNumber(idNumber)) {
+        alert('❌ 身份证号码格式不正确！请检查后重新输入。');
+        document.getElementById('idNumber').focus();
+        return false;
+      }
+      
+      if (!phoneNumber) {
+        alert('❌ 请输入手机号码！');
+        document.getElementById('phoneNumber').focus();
+        return false;
+      }
+      
+      if (!validatePhoneNumber(phoneNumber)) {
+        alert('❌ 手机号码格式不正确！请输入11位手机号码。');
+        document.getElementById('phoneNumber').focus();
+        return false;
+      }
+      
+      return true;
+    }
+    
+    /**
+     * 更新预览内容
+     */
+    function updatePreview() {
+      const licensePlate = document.getElementById('licensePlate').value.trim();
+      const driverName = document.getElementById('driverName').value.trim();
+      const idNumber = document.getElementById('idNumber').value.trim();
+      const phoneNumber = document.getElementById('phoneNumber').value.trim();
+      const itemCount = document.getElementById('itemCount').value.trim();
+      const handler = document.getElementById('handler').value.trim() || '任焱明';
+      
+      // 更新预览内容
+      document.getElementById('preview_licensePlate').textContent = licensePlate;
+      document.getElementById('preview_driverName1').textContent = driverName;
+      document.getElementById('preview_driverName2').textContent = driverName;
+      document.getElementById('preview_driverName3').textContent = driverName;
+      document.getElementById('preview_idNumber1').textContent = idNumber;
+      document.getElementById('preview_idNumber2').textContent = idNumber;
+      document.getElementById('preview_phoneNumber').textContent = phoneNumber;
+      
+      // 处理件数显示
+      if (itemCount) {
+        document.getElementById('preview_itemCount_display').textContent = `共  ${itemCount}  件`;
+      } else {
+        document.getElementById('preview_itemCount_display').textContent = '共        件';
+      }
+      
+      document.getElementById('preview_handler').textContent = handler;
+      const noDate = document.getElementById('noDate').checked;
+      const dateSection = document.getElementById('preview_date').parentElement;
+      if (noDate) {
+        dateSection.style.display = 'none';
+      } else {
+        dateSection.style.display = '';
+        document.getElementById('preview_date').textContent = getCurrentDate();
+      }
+    }
+    
+    /**
+     * 导出为Word文档（.docx格式）
+     */
+    async function exportToWord() {
+      // 验证表单
+      if (!validateForm()) {
+        return;
+      }
+      
+      const licensePlate = document.getElementById('licensePlate').value.trim();
+      const driverName = document.getElementById('driverName').value.trim();
+      const idNumber = document.getElementById('idNumber').value.trim();
+      const phoneNumber = document.getElementById('phoneNumber').value.trim();
+      const itemCount = document.getElementById('itemCount').value.trim();
+      const handler = document.getElementById('handler').value.trim() || '任焱明';
+      const noDate = document.getElementById('noDate').checked;
+      const currentDate = getCurrentDate();
+      
+      // 显示加载提示
+      const exportBtn = document.getElementById('exportBtn');
+      const originalText = exportBtn.textContent;
+      exportBtn.textContent = '⏳ 正在生成...';
+      exportBtn.disabled = true;
+      
+      try {
+        // 检查docx库是否加载
+        if (typeof docx === 'undefined') {
+          throw new Error('docx库未加载');
+        }
+        
+        const { Document, Paragraph, TextRun, AlignmentType, UnderlineType, HeadingLevel } = docx;
+        
+        console.log('开始生成Word文档...');
+        console.log('表单数据:', { licensePlate, driverName, idNumber, phoneNumber, itemCount, handler, currentDate });
+        
+        // 创建文档 - 使用更精确的配置
+        const doc = new Document({
+          sections: [{
+            properties: {
+              page: {
+                margin: {
+                  top: 1440,
+                  right: 1440,
+                  bottom: 1440,
+                  left: 1440,
+                },
+              },
+            },
+            children: [
+              // 空段落（确保顶部间距）
+              new Paragraph({
+                text: "",
+                spacing: { after: 100 },
+              }),
+              
+              // 标题 - 居中对齐，加粗，18pt
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "                提货签名委托授权书",
+                    size: 36,
+                    bold: true,
+                    font: "SimSun",
+                  }),
+                ],
+                spacing: {
+                  before: 0,
+                  after: 600,
+                },
+              }),
+              
+              // 空行
+              new Paragraph({
+                text: "",
+                spacing: { after: 200 },
+              }),
+              
+              // 致：东莞市光普实业发展有限公司 - 左对齐，不缩进
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "致：东莞市光普实业发展有限公司",
+                    size: 24,
+                    font: "SimSun",
+                  }),
+                ],
+                spacing: {
+                  after: 300,
+                  line: 500,
+                },
+              }),
+              
+              // 我公司现委托... - 首行缩进2字符
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "  我公司现委托",
+                    size: 24,
+                    font: "SimSun",
+                  }),
+                  new TextRun({
+                    text: `  ${driverName}  `,
+                    size: 24,
+                    font: "SimSun",
+                    underline: {
+                      type: UnderlineType.SINGLE,
+                    },
+                  }),
+                  new TextRun({
+                    text: "身份证号码：",
+                    size: 24,
+                    font: "SimSun",
+                  }),
+                  new TextRun({
+                    text: `  ${idNumber}  `,
+                    size: 24,
+                    font: "SimSun",
+                    underline: {
+                      type: UnderlineType.SINGLE,
+                    },
+                  }),
+                  new TextRun({
+                    text: "，",
+                    size: 24,
+                    font: "SimSun",
+                  }),
+                ],
+                spacing: {
+                  after: 300,
+                  line: 500,
+                },
+              }),
+              
+              // 车牌号码... - 不缩进，顶格左对齐
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "车牌号码：",
+                    size: 24,
+                    font: "SimSun",
+                  }),
+                  new TextRun({
+                    text: `  ${licensePlate}  `,
+                    size: 24,
+                    font: "SimSun",
+                    underline: {
+                      type: UnderlineType.SINGLE,
+                    },
+                  }),
+                  new TextRun({
+                    text: "，手机号码：",
+                    size: 24,
+                    font: "SimSun",
+                  }),
+                  new TextRun({
+                    text: `  ${phoneNumber}  `,
+                    size: 24,
+                    font: "SimSun",
+                    underline: {
+                      type: UnderlineType.SINGLE,
+                    },
+                  }),
+                  new TextRun({
+                    text: " 前往贵公司提取货物",
+                    size: 24,
+                    font: "SimSun",
+                  }),
+                  new TextRun({
+                    text: itemCount ? `       共  ${itemCount}  件` : "       共         件",
+                    size: 24,
+                    font: "SimSun",
+                    underline: {
+                      type: UnderlineType.SINGLE,
+                    },
+                  }),
+                  new TextRun({
+                    text: "，具体以贵公司《销售出库单》等单据为准）。并授权",
+                    size: 24,
+                    font: "SimSun",
+                  }),
+                  new TextRun({
+                    text: `     ${driverName}   `,
+                    size: 24,
+                    font: "SimSun",
+                    underline: {
+                      type: UnderlineType.SINGLE,
+                    },
+                  }),
+                  new TextRun({
+                    text: "身份证号码：",
+                    size: 24,
+                    font: "SimSun",
+                  }),
+                  new TextRun({
+                    text: `   ${idNumber}  `,
+                    size: 24,
+                    font: "SimSun",
+                    underline: {
+                      type: UnderlineType.SINGLE,
+                    },
+                  }),
+                  new TextRun({
+                    text: "，签收贵公司《销售出库单》等单据，签名样式为",
+                    size: 24,
+                    font: "SimSun",
+                  }),
+                  new TextRun({
+                    text: `  ${driverName}  `,
+                    size: 24,
+                    font: "SimSun",
+                    underline: {
+                      type: UnderlineType.SINGLE,
+                    },
+                  }),
+                  new TextRun({
+                    text: "我公司愿意对该人员签收的贵公司《销售出库单》等单据上的货物承担法律责任。",
+                    size: 24,
+                    font: "SimSun",
+                  }),
+                ],
+                spacing: {
+                  after: 1000,
+                  line: 500,
+                },
+              }),
+              
+              // 空行
+              new Paragraph({
+                text: "",
+                spacing: { after: 600 },
+              }),
+              
+              new Paragraph({
+                text: "",
+                spacing: { after: 600 },
+              }),
+              
+              // 公司（公章）：- 右对齐
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "                                    公  司（公章）：",
+                    size: 24,
+                    font: "SimSun",
+                  }),
+                ],
+                alignment: AlignmentType.END,
+                spacing: {
+                  after: 400,
+                  line: 500,
+                },
+              }),
+              
+              // 经手人（签名）：- 右对齐
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "                                    经手人（签名）：",
+                    size: 24,
+                    font: "SimSun",
+                  }),
+                  new TextRun({
+                    text: `     ${handler}`,
+                    size: 24,
+                    font: "SimSun",
+                    underline: {
+                      type: UnderlineType.SINGLE,
+                    },
+                  }),
+                ],
+                alignment: AlignmentType.END,
+                spacing: {
+                  after: 800,
+                  line: 500,
+                },
+              }),
+              
+              // 日期 - 右对齐，与经手人对齐（可选）
+              ...(noDate ? [] : [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: `                                    ${currentDate}`,
+                      size: 24,
+                      font: "SimSun",
+                    }),
+                  ],
+                  alignment: AlignmentType.END,
+                  spacing: {
+                    after: 200,
+                    line: 500,
+                  },
+                }),
+              ]),
+            ],
+          }],
+        });
+        
+        console.log('文档对象创建完成');
+        
+        // 生成docx文件
+        const blob = await docx.Packer.toBlob(doc);
+        
+        console.log('Blob生成完成，大小:', blob.size);
+        
+        // 下载文件
+        saveAs(blob, `提货授权书-${licensePlate}-${driverName}.docx`);
+        
+        // alert('✅ 授权书已成功导出为.docx格式！\n\n文件名：提货授权书-' + licensePlate + '-' + driverName + '.docx');
+        
+      } catch (error) {
+        console.error('导出失败:', error);
+        alert('❌ 导出失败：' + error.message + '\n\n请刷新页面后重试，或使用打印功能（Ctrl+P）保存为PDF。');
+      } finally {
+        const exportBtn = document.getElementById('exportBtn');
+        exportBtn.textContent = originalText;
+        exportBtn.disabled = false;
+      }
+    }
+    
+    /**
+     * 降级方案：导出为.doc格式
+     */
+    function exportAsDoc(htmlContent, licensePlate, driverName) {
+      const blob = new Blob(['\ufeff', htmlContent], {
+        type: 'application/msword;charset=utf-8'
+      });
+      
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `提货授权书-${licensePlate}-${driverName}.doc`;
+      
+      document.body.appendChild(link);
+      link.click();
+      
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 100);
+      
+      // alert('✅ 授权书已成功导出！\n\n文件名：提货授权书-' + licensePlate + '-' + driverName + '.doc\n\n提示：如需.docx格式，请用Word打开后另存为.docx');
+    }
+    
+    /**
+     * 页面加载完成后的初始化
+     */
+    window.onload = function() {
+      // 设置日期输入框默认值为今天
+      const today = new Date();
+      document.getElementById('docDate').value = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+      // 更新日期
+      document.getElementById('preview_date').textContent = getCurrentDate();
+      
+      // 添加输入框实时验证
+      document.getElementById('idNumber').addEventListener('input', function(e) {
+        let value = e.target.value.toUpperCase();
+        e.target.value = value;
+      });
+      
+      document.getElementById('phoneNumber').addEventListener('input', function(e) {
+        // 只允许输入数字
+        e.target.value = e.target.value.replace(/[^\d]/g, '');
+      });
+      
+      document.getElementById('itemCount').addEventListener('input', function(e) {
+        // 只允许输入数字
+        e.target.value = e.target.value.replace(/[^\d]/g, '');
+      });
+      
+      console.log('📄 提货授权书生成器已就绪！');
+    };
+  </script>
+</body>
+</html>
