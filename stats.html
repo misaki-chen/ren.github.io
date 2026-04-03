@@ -10,48 +10,79 @@
       font-family: "Microsoft YaHei", Arial, sans-serif;
       background: #1a1a2e; color: #eee; min-height: 100vh; padding: 40px 20px;
     }
-    .container { max-width: 800px; margin: 0 auto; }
+    .container { max-width: 1000px; margin: 0 auto; }
     h1 { text-align: center; margin-bottom: 32px; font-size: 24px; color: #a78bfa; }
 
     .stats-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 20px; margin-bottom: 40px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px; margin-bottom: 32px;
     }
     .stat-card {
-      background: #16213e; border-radius: 12px; padding: 24px;
+      background: #16213e; border-radius: 12px; padding: 20px;
       text-align: center; border: 1px solid #2a2a4a;
     }
-    .stat-card .label { font-size: 13px; color: #888; margin-bottom: 8px; }
-    .stat-card .value {
-      font-size: 36px; font-weight: bold; color: #a78bfa;
-    }
-    .stat-card .sub { font-size: 12px; color: #666; margin-top: 6px; }
+    .stat-card .label { font-size: 12px; color: #888; margin-bottom: 6px; }
+    .stat-card .value { font-size: 32px; font-weight: bold; color: #a78bfa; }
+    .stat-card .sub { font-size: 11px; color: #555; margin-top: 4px; }
 
-    .page-stats { margin-top: 32px; }
-    .page-stats h2 {
-      font-size: 18px; color: #a78bfa; margin-bottom: 16px;
+    .section { margin-top: 32px; }
+    .section h2 {
+      font-size: 16px; color: #a78bfa; margin-bottom: 12px;
       border-bottom: 1px solid #2a2a4a; padding-bottom: 8px;
     }
-    .page-row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 12px 16px; background: #16213e; border-radius: 8px;
-      margin-bottom: 8px; border: 1px solid #2a2a4a;
-    }
-    .page-row .name { font-size: 14px; }
-    .page-row .count {
-      font-size: 20px; font-weight: bold; color: #a78bfa;
-    }
-    .loading { text-align: center; color: #666; padding: 40px; }
 
+    /* 配置区 */
+    .config-bar {
+      background: #16213e; border: 1px solid #2a2a4a; border-radius: 8px;
+      padding: 16px; margin-bottom: 24px;
+    }
+    .config-bar label { font-size: 13px; color: #888; display: block; margin-bottom: 6px; }
+    .config-bar input {
+      width: 100%; padding: 8px 12px; border: 1px solid #2a2a4a; border-radius: 6px;
+      background: #0f0f23; color: #eee; font-size: 13px; font-family: monospace;
+    }
+    .config-bar .hint { font-size: 11px; color: #555; margin-top: 6px; }
+    .config-bar button {
+      margin-top: 10px; padding: 6px 16px; border: none; border-radius: 6px;
+      background: #a78bfa; color: white; cursor: pointer; font-size: 13px;
+    }
+    .config-bar button:hover { background: #8b6fdf; }
+
+    /* 访客表格 */
+    .visitor-table {
+      width: 100%; border-collapse: collapse; font-size: 13px;
+    }
+    .visitor-table th {
+      background: #16213e; color: #a78bfa; padding: 10px 12px;
+      text-align: left; border-bottom: 1px solid #2a2a4a;
+      position: sticky; top: 0;
+    }
+    .visitor-table td {
+      padding: 8px 12px; border-bottom: 1px solid #1a1a3e;
+    }
+    .visitor-table tr:hover td { background: #16213e; }
+    .table-wrap {
+      max-height: 500px; overflow-y: auto; border-radius: 8px;
+      border: 1px solid #2a2a4a;
+    }
+
+    .badge {
+      display: inline-block; padding: 2px 8px; border-radius: 4px;
+      font-size: 11px; font-weight: bold;
+    }
+    .badge-page { background: #1e3a5f; color: #60a5fa; }
+    .badge-device { background: #1e3e1e; color: #6ee76e; }
+
+    .empty { text-align: center; color: #555; padding: 40px; }
     .back-link {
       display: inline-block; margin-bottom: 20px; color: #a78bfa;
       text-decoration: none; font-size: 14px; opacity: 0.8;
     }
     .back-link:hover { opacity: 1; }
-
-    .note {
-      text-align: center; color: #555; font-size: 12px; margin-top: 40px;
-    }
+    .note { text-align: center; color: #444; font-size: 11px; margin-top: 40px; }
+    .status { font-size: 12px; margin-top: 8px; }
+    .status.ok { color: #6ee76e; }
+    .status.err { color: #f87171; }
   </style>
 </head>
 <body>
@@ -59,118 +90,227 @@
     <a href="index.html" class="back-link">&larr; 返回首页</a>
     <h1>访问统计面板</h1>
 
-    <!-- 全站统计 -->
-    <div class="stats-grid">
+    <!-- 配置 Google Sheets URL -->
+    <div class="config-bar">
+      <label>Google Apps Script Web App URL</label>
+      <input type="text" id="trackerUrl" placeholder="https://script.google.com/macros/s/xxxxx/exec">
+      <div class="hint">
+        配置后数据自动保存到 Google Sheets。<a href="#" onclick="showSetupGuide();return false" style="color:#a78bfa">查看配置教程</a>
+      </div>
+      <button onclick="saveConfig()">保存并加载数据</button>
+      <div class="status" id="configStatus"></div>
+    </div>
+
+    <!-- 概览 -->
+    <div class="stats-grid" id="overviewCards">
       <div class="stat-card">
-        <div class="label">全站总访问量 (PV)</div>
-        <div class="value" id="site_pv">-</div>
-        <div class="sub">页面浏览次数</div>
+        <div class="label">总访问记录</div>
+        <div class="value" id="totalVisits">-</div>
       </div>
       <div class="stat-card">
-        <div class="label">全站访客数 (UV)</div>
-        <div class="value" id="site_uv">-</div>
-        <div class="sub">独立访客人数</div>
+        <div class="label">独立IP数</div>
+        <div class="value" id="uniqueIps">-</div>
       </div>
       <div class="stat-card">
-        <div class="label">本页访问量</div>
-        <div class="value" id="page_pv">-</div>
-        <div class="sub">统计面板被查看次数</div>
+        <div class="label">今日访问</div>
+        <div class="value" id="todayVisits">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">最热门工具</div>
+        <div class="value" id="topPage" style="font-size:16px">-</div>
+      </div>
+    </div>
+
+    <!-- 不蒜子统计 -->
+    <div class="section">
+      <h2>不蒜子全站统计</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="label">全站 PV</div>
+          <div class="value" id="bsz_pv">-</div>
+          <div class="sub">页面浏览总次数</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">全站 UV</div>
+          <div class="value" id="bsz_uv">-</div>
+          <div class="sub">独立访客人数</div>
+        </div>
       </div>
     </div>
 
     <!-- 各页面统计 -->
-    <div class="page-stats">
-      <h2>各工具页面访问量</h2>
-      <div id="pageList" class="loading">加载中...</div>
+    <div class="section">
+      <h2>各工具访问量</h2>
+      <div id="pageStats"></div>
     </div>
 
-    <p class="note">数据由不蒜子提供，刷新页面更新 | 此页面不在首页展示</p>
+    <!-- 最近访客 -->
+    <div class="section">
+      <h2>最近访客记录</h2>
+      <div class="table-wrap">
+        <table class="visitor-table">
+          <thead>
+            <tr>
+              <th>时间</th>
+              <th>页面</th>
+              <th>IP / 位置</th>
+              <th>设备</th>
+              <th>浏览器</th>
+            </tr>
+          </thead>
+          <tbody id="visitorList">
+            <tr><td colspan="5" class="empty">未配置数据源，请先填写 Google Apps Script URL</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 配置教程 -->
+    <div class="section" id="setupGuide" style="display:none">
+      <h2>配置教程</h2>
+      <div style="background:#16213e;border:1px solid #2a2a4a;border-radius:8px;padding:20px;font-size:13px;line-height:1.8;">
+        <p><b>1.</b> 打开 <a href="https://sheets.google.com" target="_blank" style="color:#a78bfa">Google Sheets</a>，新建一个表格</p>
+        <p><b>2.</b> 在第一行添加表头：<code style="color:#60a5fa">时间 | 页面 | IP | 城市 | 省份 | 国家 | 设备 | 浏览器 | 系统 | 分辨率 | 语言 | 来源</code></p>
+        <p><b>3.</b> 点击菜单 <b>扩展程序 → Apps Script</b></p>
+        <p><b>4.</b> 删除默认代码，粘贴以下代码：</p>
+        <pre style="background:#0f0f23;padding:12px;border-radius:6px;overflow-x:auto;margin:8px 0;color:#a5f3fc;font-size:12px;">
+function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = JSON.parse(e.postData.contents);
+  sheet.appendRow([
+    data.timestamp, data.page, data.ip, data.city,
+    data.region, data.country, data.device, data.browser,
+    data.os, data.screen, data.language, data.referrer
+  ]);
+  return ContentService.createTextOutput('ok');
+}
+
+function doGet(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = sheet.getDataRange().getValues();
+  var recent = data.slice(1).slice(-200);
+  return ContentService.createTextOutput(JSON.stringify(recent))
+    .setMimeType(ContentService.MimeType.JSON);
+}</pre>
+        <p><b>5.</b> 点击 <b>部署 → 新建部署</b>，类型选 <b>Web 应用</b></p>
+        <p><b>6.</b> "谁有权访问" 选 <b>任何人</b>，点击部署</p>
+        <p><b>7.</b> 复制部署 URL，粘贴到上方输入框</p>
+        <p><b>8.</b> 同时把 URL 填入 <code style="color:#60a5fa">tracker.js</code> 文件顶部的 <code style="color:#60a5fa">TRACKER_URL</code> 变量</p>
+      </div>
+    </div>
+
+    <p class="note">仅管理员可见</p>
   </div>
 
-  <!-- 不蒜子 -->
+  <!-- 不蒜子统计 -->
   <span id="busuanzi_value_site_pv" style="display:none"></span>
   <span id="busuanzi_value_site_uv" style="display:none"></span>
   <span id="busuanzi_value_page_pv" style="display:none"></span>
   <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  <!-- 访客追踪 -->
+  <script src="tracker.js"></script>
 
   <script>
-    // 页面列表
-    const pages = [
-      { name: '首页', url: 'index.html' },
-      { name: '柜号确认单', url: 'container_info.html' },
-      { name: '授权书 - 多格式版', url: 'authorization_letter_multiple.html' },
-      { name: '多功能工具', url: 'muiltiple_tool.html' },
-    ];
-
-    // 等不蒜子加载完成后更新数据
-    function waitForBusuanzi() {
-      const checkInterval = setInterval(() => {
-        const pvEl = document.getElementById('busuanzi_value_site_pv');
-        const uvEl = document.getElementById('busuanzi_value_site_uv');
-        const pagePvEl = document.getElementById('busuanzi_value_page_pv');
-
-        if (pvEl && pvEl.textContent && pvEl.textContent !== '') {
-          clearInterval(checkInterval);
-
-          document.getElementById('site_pv').textContent = pvEl.textContent;
-          document.getElementById('site_uv').textContent = uvEl.textContent;
-          document.getElementById('page_pv').textContent = pagePvEl.textContent;
-
-          // 各页面统计通过 iframe 获取
-          loadPageStats();
+    // 从 localStorage 读取配置
+    // 不蒜子数据加载
+    (function waitBsz() {
+      const check = setInterval(() => {
+        const pv = document.getElementById('busuanzi_value_site_pv');
+        const uv = document.getElementById('busuanzi_value_site_uv');
+        if (pv && pv.textContent) {
+          clearInterval(check);
+          document.getElementById('bsz_pv').textContent = pv.textContent;
+          document.getElementById('bsz_uv').textContent = uv.textContent;
         }
-      }, 200);
+      }, 300);
+      setTimeout(() => clearInterval(check), 10000);
+    })();
 
-      // 超时
-      setTimeout(() => {
-        clearInterval(checkInterval);
-        if (document.getElementById('site_pv').textContent === '-') {
-          document.getElementById('site_pv').textContent = '加载失败';
-        }
-      }, 10000);
+    const STORAGE_KEY = 'ren_tracker_url';
+    const urlInput = document.getElementById('trackerUrl');
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      urlInput.value = saved;
+      loadData(saved);
     }
 
-    // 各页面统计
-    function loadPageStats() {
-      const container = document.getElementById('pageList');
-      container.innerHTML = '';
+    function saveConfig() {
+      const url = urlInput.value.trim();
+      if (!url) { setStatus('请输入 URL', 'err'); return; }
+      localStorage.setItem(STORAGE_KEY, url);
+      setStatus('已保存，正在加载数据...', 'ok');
+      loadData(url);
+    }
 
-      pages.forEach(page => {
-        const row = document.createElement('div');
-        row.className = 'page-row';
-        row.innerHTML = `
-          <span class="name">${page.name}<br><small style="color:#555">${page.url}</small></span>
-          <span class="count" id="page_${page.url}">-</span>
-        `;
-        container.appendChild(row);
+    function setStatus(msg, type) {
+      const el = document.getElementById('configStatus');
+      el.textContent = msg;
+      el.className = 'status ' + (type || '');
+    }
 
-        // 用隐藏 iframe 获取每个页面的不蒜子 PV
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = page.url;
-        iframe.onload = function() {
-          try {
-            const doc = iframe.contentDocument;
-            const pvSpan = doc.getElementById('busuanzi_value_page_pv');
-            if (pvSpan) {
-              const check = setInterval(() => {
-                if (pvSpan.textContent && pvSpan.textContent !== '') {
-                  clearInterval(check);
-                  document.getElementById('page_' + page.url).textContent = pvSpan.textContent;
-                  document.body.removeChild(iframe);
-                }
-              }, 300);
-              setTimeout(() => { clearInterval(check); }, 8000);
-            }
-          } catch(e) {
-            // 跨域限制时无法获取
-          }
-        };
-        document.body.appendChild(iframe);
+    function showSetupGuide() {
+      const guide = document.getElementById('setupGuide');
+      guide.style.display = guide.style.display === 'none' ? 'block' : 'none';
+    }
+
+    async function loadData(url) {
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        setStatus('数据加载成功，共 ' + data.length + ' 条记录', 'ok');
+        renderData(data);
+      } catch(e) {
+        setStatus('加载失败: ' + e.message, 'err');
+      }
+    }
+
+    function renderData(rows) {
+      // rows: [[时间, 页面, IP, 城市, 省份, 国家, 设备, 浏览器, 系统, 分辨率, 语言, 来源], ...]
+      const total = rows.length;
+      const ips = new Set(rows.map(r => r[2]).filter(Boolean));
+      const today = new Date().toLocaleDateString('zh-CN');
+      const todayCount = rows.filter(r => r[0] && r[0].includes(today)).length;
+
+      // 页面统计
+      const pageCounts = {};
+      rows.forEach(r => {
+        const p = r[1] || 'unknown';
+        pageCounts[p] = (pageCounts[p] || 0) + 1;
       });
-    }
+      const sorted = Object.entries(pageCounts).sort((a, b) => b[1] - a[1]);
 
-    waitForBusuanzi();
+      document.getElementById('totalVisits').textContent = total;
+      document.getElementById('uniqueIps').textContent = ips.size;
+      document.getElementById('todayVisits').textContent = todayCount;
+      document.getElementById('topPage').textContent = sorted[0] ? sorted[0][0].replace('.html','') : '-';
+
+      // 页面统计列表
+      const pageDiv = document.getElementById('pageStats');
+      pageDiv.innerHTML = sorted.map(([name, count]) => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#16213e;border-radius:8px;margin-bottom:6px;border:1px solid #2a2a4a;">
+          <span>${name}</span>
+          <span style="font-weight:bold;color:#a78bfa;font-size:18px;">${count}</span>
+        </div>
+      `).join('');
+
+      // 访客列表（最新的在前）
+      const tbody = document.getElementById('visitorList');
+      const recent = rows.slice().reverse().slice(0, 100);
+      if (recent.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">暂无数据</td></tr>';
+        return;
+      }
+      tbody.innerHTML = recent.map(r => {
+        const location = [r[3], r[4], r[5]].filter(Boolean).join(', ') || '-';
+        return `<tr>
+          <td style="white-space:nowrap">${r[0] || '-'}</td>
+          <td><span class="badge badge-page">${r[1] || '-'}</span></td>
+          <td>${r[2] || '-'}<br><small style="color:#666">${location}</small></td>
+          <td><span class="badge badge-device">${r[6] || '-'}</span> ${r[8] || ''}</td>
+          <td>${r[7] || '-'}</td>
+        </tr>`;
+      }).join('');
+    }
   </script>
 </body>
 </html>
