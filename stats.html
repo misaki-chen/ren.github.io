@@ -195,33 +195,6 @@
       </details>
     </div>
 
-    <!-- 不蒜子统计 -->
-    <div class="section">
-      <details>
-        <summary>不蒜子全站统计</summary>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="label">全站 PV</div>
-            <div class="value" id="bsz_pv">-</div>
-            <div class="sub">页面浏览总次数</div>
-          </div>
-          <div class="stat-card">
-            <div class="label">全站 UV</div>
-            <div class="value" id="bsz_uv">-</div>
-            <div class="sub">独立访客人数</div>
-          </div>
-        </div>
-      </details>
-    </div>
-
-    <!-- 不蒜子各页面统计 -->
-    <div class="section">
-      <details>
-        <summary>不蒜子 - 各工具页面 PV</summary>
-        <div id="bszPageStats" style="color:#555">加载中...</div>
-      </details>
-    </div>
-
     <!-- Tracker 各页面统计 -->
     <div class="section">
       <details open>
@@ -260,11 +233,6 @@
     <p class="note">仅管理员可见</p>
   </div>
 
-  <!-- 不蒜子统计 -->
-  <span id="busuanzi_value_site_pv" style="display:none"></span>
-  <span id="busuanzi_value_site_uv" style="display:none"></span>
-  <span id="busuanzi_value_page_pv" style="display:none"></span>
-  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
   <!-- 访客追踪 -->
   <script src="tracker.js"></script>
   <!-- Chart.js -->
@@ -280,54 +248,6 @@
 
     // 图表实例
     let charts = {};
-
-    // ===== 不蒜子 =====
-    (function waitBsz() {
-      const check = setInterval(() => {
-        const pv = document.getElementById('busuanzi_value_site_pv');
-        const uv = document.getElementById('busuanzi_value_site_uv');
-        if (pv && pv.textContent) {
-          clearInterval(check);
-          document.getElementById('bsz_pv').textContent = pv.textContent;
-          document.getElementById('bsz_uv').textContent = uv.textContent;
-          loadBszPageStats();
-        }
-      }, 300);
-      setTimeout(() => clearInterval(check), 10000);
-    })();
-
-    function loadBszPageStats() {
-      const pages = [
-        { name: '首页', url: 'index.html' },
-        { name: '柜号确认单', url: 'container_info.html' },
-        { name: '授权书', url: 'authorization_letter_multiple.html' },
-        { name: '多功能工具', url: 'muiltiple_tool.html' },
-        { name: '统计面板', url: 'stats.html' },
-      ];
-      const container = document.getElementById('bszPageStats');
-      container.innerHTML = '';
-      pages.forEach(page => {
-        const row = document.createElement('div');
-        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#16213e;border-radius:8px;margin-bottom:6px;border:1px solid #2a2a4a;';
-        row.innerHTML = '<span>' + page.name + '</span><span style="font-weight:bold;color:#a78bfa;font-size:18px;" id="bsz_page_' + page.url + '">-</span>';
-        container.appendChild(row);
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = page.url;
-        iframe.onload = function() {
-          try {
-            const pvSpan = iframe.contentDocument.getElementById('busuanzi_value_page_pv');
-            if (pvSpan) {
-              const c = setInterval(() => {
-                if (pvSpan.textContent) { clearInterval(c); document.getElementById('bsz_page_' + page.url).textContent = pvSpan.textContent; try{document.body.removeChild(iframe)}catch(e){} }
-              }, 300);
-              setTimeout(() => clearInterval(c), 8000);
-            }
-          } catch(e) {}
-        };
-        document.body.appendChild(iframe);
-      });
-    }
 
     // ===== 数据加载 =====
     function setStatus(msg, type) {
