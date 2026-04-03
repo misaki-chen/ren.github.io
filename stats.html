@@ -227,12 +227,11 @@ function doGet(e) {
     })();
 
     const STORAGE_KEY = 'ren_tracker_url';
+    const DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbylXqKiqxI7yi2cy49i6xrO9-vuZYKn6McWo7wcoS9w2phAEegFLc13vhTOxN_UhscU/exec';
     const urlInput = document.getElementById('trackerUrl');
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      urlInput.value = saved;
-      loadData(saved);
-    }
+    const saved = localStorage.getItem(STORAGE_KEY) || DEFAULT_URL;
+    urlInput.value = saved;
+    loadData(saved);
 
     function saveConfig() {
       const url = urlInput.value.trim();
