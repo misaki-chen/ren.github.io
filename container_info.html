@@ -143,33 +143,41 @@
     }
     .preview-container.show { display: block; }
     .preview-layout {
-      display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;
+      display: flex; flex-direction: column; gap: 16px;
     }
 
     /* 柜号确认单表格预览 */
     .confirm-table {
-      border-collapse: collapse; font-size: 14px; min-width: 520px;
+      border-collapse: collapse; font-size: 15px; width: 600px;
+      background: white;
     }
     .confirm-table td {
-      border: 1px solid #333; padding: 6px 12px; white-space: nowrap;
+      border: 1.5px solid #222; padding: 8px 14px; white-space: nowrap;
     }
     .confirm-table .title-row td {
-      border: none; text-align: center; font-size: 22px;
-      font-weight: bold; letter-spacing: 12px; padding: 12px;
+      border: none; text-align: center; font-size: 26px;
+      font-weight: bold; letter-spacing: 32px; padding: 18px 12px;
     }
-    .confirm-table .header-row td { border-left: none; border-right: none; }
-    .confirm-table .empty-row td { border: none; height: 6px; }
+    .confirm-table .header-row td {
+      border: none; border-bottom: 2px solid #222; padding: 8px 14px;
+    }
+    .confirm-table .header-row .gap-cell {
+      border-bottom: none; width: 40px;
+    }
+    .confirm-table .empty-row td { border: none; height: 8px; }
     .confirm-table .label-cell {
-      font-weight: bold; text-align: center; background: #fafafa;
+      text-align: center; font-weight: normal;
     }
-    .confirm-table .value-cell { min-width: 120px; }
-    .confirm-table .highlight { background: #ffff00; font-weight: bold; }
+    .confirm-table .value-cell { min-width: 140px; }
+    .confirm-table .highlight { background: #ffff00; }
+    .confirm-table .bold-val { font-weight: bold; }
 
     .preview-images {
       display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap;
+      margin-top: 16px;
     }
     .preview-images img {
-      max-height: 380px; max-width: 300px; width: auto; height: auto;
+      max-height: 320px; max-width: 280px; width: auto; height: auto;
       object-fit: contain; border-radius: 4px; border: 1px solid #ddd;
     }
 
@@ -636,79 +644,78 @@
       const driverPhone = [data.driver, data.driverPhone].filter(Boolean).join('/');
       return `
       <table class="confirm-table">
-        <tr class="title-row"><td colspan="4">柜 &nbsp; 号 &nbsp; 确 &nbsp; 认 &nbsp; 单</td></tr>
-        <tr class="empty-row"><td colspan="4"></td></tr>
-        <tr class="empty-row"><td colspan="4"></td></tr>
+        <tr class="title-row"><td colspan="5">柜号确认单</td></tr>
+        <tr class="empty-row"><td colspan="5"></td></tr>
         <tr class="header-row">
-          <td style="border-bottom:2px solid #000">TO:</td>
-          <td style="border-bottom:2px solid #000" colspan="2">${data.to}</td>
-          <td style="border-bottom:none"></td>
-          <td style="border-bottom:2px solid #000">FROM:</td>
-          <td style="border-bottom:2px solid #000">${data.from}</td>
+          <td>TO:</td>
+          <td>${data.to}</td>
+          <td class="gap-cell"></td>
+          <td>FROM:</td>
+          <td>${data.from}</td>
         </tr>
         <tr class="header-row">
-          <td style="border-bottom:2px solid #000">装货地点:</td>
-          <td style="border-bottom:2px solid #000" colspan="2">${data.loadPlace}</td>
-          <td style="border-bottom:none"></td>
-          <td style="border-bottom:2px solid #000">DATE:</td>
-          <td style="border-bottom:2px solid #000">${data.date}</td>
+          <td>装货地点:</td>
+          <td>${data.loadPlace}</td>
+          <td class="gap-cell"></td>
+          <td>DATE:</td>
+          <td>${data.date}</td>
         </tr>
-        <tr class="empty-row"><td colspan="4"></td></tr>
+        <tr class="empty-row"><td colspan="5"></td></tr>
         <tr>
           <td class="label-cell">订 仓 号</td>
-          <td class="value-cell"><b>${data.booking}</b></td>
+          <td class="value-cell bold-val">${data.booking}</td>
           <td class="label-cell">车 &nbsp; 牌</td>
-          <td class="value-cell">${data.plate}</td>
+          <td class="value-cell" colspan="2">${data.plate}</td>
         </tr>
         <tr>
           <td class="label-cell">柜 &nbsp; 型</td>
-          <td class="value-cell"><b>${data.containerType}</b></td>
+          <td class="value-cell bold-val">${data.containerType}</td>
           <td class="label-cell">司机/电话</td>
-          <td class="value-cell">${driverPhone}</td>
+          <td class="value-cell" colspan="2">${driverPhone}</td>
         </tr>
-        <tr class="empty-row"><td colspan="4"></td></tr>
+        <tr class="empty-row"><td colspan="5"></td></tr>
         <tr>
           <td class="label-cell">柜 &nbsp; 号</td>
-          <td class="value-cell"><b>${data.containerNo}</b></td>
+          <td class="value-cell bold-val">${data.containerNo}</td>
           <td class="label-cell highlight">订单号</td>
-          <td class="value-cell">${data.po}</td>
+          <td class="value-cell" colspan="2">${data.po}</td>
         </tr>
-        <tr class="empty-row"><td colspan="4"></td></tr>
+        <tr class="empty-row"><td colspan="5"></td></tr>
         <tr>
           <td class="label-cell">封 &nbsp; 条</td>
           <td class="value-cell">${data.sealNo}</td>
           <td class="label-cell">密码</td>
-          <td class="value-cell"></td>
+          <td class="value-cell" colspan="2"></td>
         </tr>
         <tr>
           <td class="label-cell">出口口岸</td>
           <td class="value-cell"></td>
           <td class="label-cell">车架代码</td>
-          <td class="value-cell"></td>
+          <td class="value-cell" colspan="2"></td>
         </tr>
         <tr>
           <td class="label-cell">车头自重</td>
           <td class="value-cell"></td>
           <td class="label-cell">车架自重</td>
-          <td class="value-cell"></td>
+          <td class="value-cell" colspan="2"></td>
         </tr>
         <tr>
           <td class="label-cell">电子关锁号</td>
           <td class="value-cell"></td>
           <td class="label-cell">通关卡</td>
-          <td class="value-cell"></td>
+          <td class="value-cell" colspan="2"></td>
         </tr>
         <tr>
           <td class="label-cell">提柜地点</td>
           <td class="value-cell">${data.pickupPlace}</td>
           <td class="label-cell">还柜地点</td>
-          <td class="value-cell">${data.returnPlace}</td>
+          <td class="value-cell" colspan="2">${data.returnPlace}</td>
         </tr>
         <tr>
           <td class="label-cell"></td>
           <td class="label-cell">柜重</td>
           <td class="value-cell"></td>
-          <td class="value-cell">${data.weight}</td>
+          <td class="value-cell" colspan="2">${data.weight}</td>
         </tr>
       </table>`;
     }
@@ -776,38 +783,38 @@
       // Row 3: 空行
       ws.mergeCells('A3:I3');
 
-      // Row 4: TO: / 光普 / FROM: / 伟航物流
+      // Row 4: TO: / 光普 / FROM: / 伟航物流 (全部加粗)
       ws.getCell('A4').value = 'TO:';
-      ws.getCell('A4').font = normalFont;
+      ws.getCell('A4').font = boldFont;
       ws.getCell('A4').border = thickBottom;
       ws.mergeCells('B4:D4');
       ws.getCell('B4').value = data.to;
-      ws.getCell('B4').font = normalFont;
+      ws.getCell('B4').font = boldFont;
       ws.getCell('B4').border = thickBottom;
       // E4-F4 空(无底线，形成间隔)
       ws.getCell('G4').value = 'FROM:';
-      ws.getCell('G4').font = normalFont;
+      ws.getCell('G4').font = boldFont;
       ws.getCell('G4').border = thickBottom;
       ws.mergeCells('H4:I4');
       ws.getCell('H4').value = data.from;
-      ws.getCell('H4').font = normalFont;
+      ws.getCell('H4').font = boldFont;
       ws.getCell('H4').border = thickBottom;
 
-      // Row 5: 装货地点: / 清溪 / DATE: / 03/31/14:00
+      // Row 5: 装货地点: / 清溪 / DATE: / 日期 (全部加粗)
       ws.getCell('A5').value = '装货地点:';
-      ws.getCell('A5').font = normalFont;
+      ws.getCell('A5').font = boldFont;
       ws.getCell('A5').border = thickBottom;
       ws.mergeCells('B5:D5');
       ws.getCell('B5').value = data.loadPlace;
-      ws.getCell('B5').font = normalFont;
+      ws.getCell('B5').font = boldFont;
       ws.getCell('B5').border = thickBottom;
       // E5-F5 空(无底线，形成间隔)
       ws.getCell('G5').value = 'DATE:';
-      ws.getCell('G5').font = normalFont;
+      ws.getCell('G5').font = boldFont;
       ws.getCell('G5').border = thickBottom;
       ws.mergeCells('H5:I5');
       ws.getCell('H5').value = data.date;
-      ws.getCell('H5').font = normalFont;
+      ws.getCell('H5').font = boldFont;
       ws.getCell('H5').border = thickBottom;
 
       // Row 6: 空行
