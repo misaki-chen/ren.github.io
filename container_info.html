@@ -193,6 +193,7 @@
   <div class="container">
     <a href="index.html" class="back-link">&larr; 返回首页</a>
     <h1>&#128230; 柜号确认单</h1>
+    <p style="text-align:center;color:rgba(255,255,255,0.6);font-size:12px;margin-top:-16px;margin-bottom:20px;">v2026.04.03</p>
     <!-- 智能识别输入 -->
     <div class="section">
       <h2>&#128270; 智能识别输入</h2>
@@ -312,8 +313,8 @@
       <h2>&#128065; 预览与导出</h2>
       <div class="btn-group" style="margin-bottom:16px;">
         <button class="btn btn-primary" onclick="showPreview()">&#128065; 预览</button>
-        <button class="btn btn-success" onclick="exportExcel('xlsx')">&#128229; 导出 .xlsx (推荐)</button>
-        <button class="btn btn-outline" onclick="exportExcel('xls')">&#128229; 导出 .xls</button>
+        <button class="btn btn-success" onclick="exportExcel('xlsx')">&#128229; 导出 .xlsx (微软Excel)</button>
+        <button class="btn btn-success" onclick="exportExcel('xls')">&#128229; 导出 .xls (WPS)</button>
       </div>
       <div class="preview-container" id="previewContainer">
         <div class="preview-layout" id="previewLayout"></div>
@@ -331,8 +332,10 @@
 
   <!-- Tesseract.js -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <!-- ExcelJS -->
+  <!-- ExcelJS (xlsx with images) -->
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+  <!-- SheetJS with styles (true xls BIFF8) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
   <!-- FileSaver -->
   <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 
@@ -754,6 +757,9 @@
 
     async function exportExcel(format) {
       const data = getFormData();
+      // 两种格式都用 ExcelJS 生成（含图片），仅扩展名不同
+      // .xlsx → 微软 Excel 完美兼容
+      // .xls  → WPS 完美兼容
       const workbook = new ExcelJS.Workbook();
       const ws = workbook.addWorksheet('Sheet1');
 
@@ -919,11 +925,155 @@
         imgCol++;
       }
 
-      // 导出
+      // 导出 xlsx
       const ext = format === 'xls' ? '.xls' : '.xlsx';
       const fileName = (data.plate || '未知车牌') + '-司机资料' + ext;
       const buffer = await workbook.xlsx.writeBuffer();
       saveAs(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), fileName);
+    }
+
+    /**
+     * 导出真正的 .xls (BIFF8) 格式 — SheetJS with styles
+     * 注意：BIFF8 格式不支持浏览器端图片嵌入，图片仅在 .xlsx 中可用
+     */
+    function exportXls(data) {
+      const wb = XLSX.utils.book_new();
+      const ws = {};
+
+      // 样式定义
+      const boldStyle = { font: { bold: true, sz: 11, name: 'Microsoft YaHei' } };
+      const normalStyle = { font: { sz: 11, name: 'Microsoft YaHei' } };
+      const titleStyle = { font: { bold: true, sz: 18, name: 'Microsoft YaHei' }, alignment: { horizontal: 'center', vertical: 'center' } };
+      const thinBorder = {
+        top: { style: 'thin' }, bottom: { style: 'thin' },
+        left: { style: 'thin' }, right: { style: 'thin' },
+      };
+      const bottomBorder = { bottom: { style: 'medium' } };
+      const whiteFill = { patternType: 'solid', fgColor: { rgb: 'FFFFFF' } };
+      const yellowFill = { patternType: 'solid', fgColor: { rgb: 'FFFF00' } };
+
+      // 辅助函数
+      function setCell(ref, value, style) {
+        ws[ref] = { v: value || '', t: typeof value === 'number' ? 'n' : 's', s: style };
+      }
+      function setEmptyCell(ref, style) {
+        ws[ref] = { t: 'z', s: style };
+      }
+
+      const cellBorder = { border: thinBorder, fill: whiteFill, ...normalStyle };
+      const cellBorderBold = { border: thinBorder, fill: whiteFill, font: { bold: true, sz: 11, name: 'Microsoft YaHei' } };
+      const labelStyle = { border: thinBorder, fill: whiteFill, ...normalStyle, alignment: { horizontal: 'center', vertical: 'center' } };
+      const headerStyle = { ...boldStyle, border: bottomBorder };
+
+      // Row 1-2: 标题 (A1:I2 merged)
+      setCell('A1', '柜  号  确  认  单', titleStyle);
+      for (const c of ['B1','C1','D1','E1','F1','G1','H1','I1','A2','B2','C2','D2','E2','F2','G2','H2','I2']) setEmptyCell(c, {});
+
+      // Row 3: 空
+      for (const c of ['A3','B3','C3','D3','E3','F3','G3','H3','I3']) setEmptyCell(c, {});
+
+      // Row 4: TO / FROM (加粗 + 底线)
+      setCell('A4', 'TO:', headerStyle);
+      setCell('B4', data.to, headerStyle);
+      for (const c of ['C4','D4']) setEmptyCell(c, headerStyle);
+      for (const c of ['E4','F4']) setEmptyCell(c, {});
+      setCell('G4', 'FROM:', headerStyle);
+      setCell('H4', data.from, headerStyle);
+      setEmptyCell('I4', headerStyle);
+
+      // Row 5: 装货地点 / DATE (加粗 + 底线)
+      setCell('A5', '装货地点:', headerStyle);
+      setCell('B5', data.loadPlace, headerStyle);
+      for (const c of ['C5','D5']) setEmptyCell(c, headerStyle);
+      for (const c of ['E5','F5']) setEmptyCell(c, {});
+      setCell('G5', 'DATE:', headerStyle);
+      setCell('H5', data.date, headerStyle);
+      setEmptyCell('I5', headerStyle);
+
+      // Row 6: 空
+      for (const c of ['A6','B6','C6','D6','E6','F6','G6','H6','I6']) setEmptyCell(c, {});
+
+      // 数据行辅助
+      function setDataRow(rowNum, label1, val1, label2, val2, opts = {}) {
+        const r = rowNum;
+        setCell(`A${r}`, label1, labelStyle);
+        setCell(`B${r}`, val1 || '', opts.boldVal1 ? cellBorderBold : cellBorder);
+        for (const c of [`C${r}`,`D${r}`]) setEmptyCell(c, { border: thinBorder, fill: whiteFill });
+
+        const label2Style = opts.highlightLabel2
+          ? { border: thinBorder, fill: yellowFill, ...normalStyle, alignment: { horizontal: 'center', vertical: 'center' } }
+          : labelStyle;
+        setCell(`E${r}`, label2, label2Style);
+        setEmptyCell(`F${r}`, { border: thinBorder, fill: opts.highlightLabel2 ? yellowFill : whiteFill });
+        setCell(`G${r}`, val2 || '', cellBorder);
+        for (const c of [`H${r}`,`I${r}`]) setEmptyCell(c, { border: thinBorder, fill: whiteFill });
+      }
+
+      const driverPhone = [data.driver, data.driverPhone].filter(Boolean).join('/');
+
+      setDataRow(7, '订 仓 号', data.booking, '车    牌', data.plate, { boldVal1: true });
+      setDataRow(8, '柜  型', data.containerType, '司机/电话 ', driverPhone, { boldVal1: true });
+      setDataRow(9, '柜  号', data.containerNo, '订单号', data.po, { boldVal1: true, highlightLabel2: true });
+      setDataRow(10, '封  条', data.sealNo, '密码', '');
+      setDataRow(11, '出口口岸', '', '车架代码', '');
+      setDataRow(12, '车头自重', '', '车架自重', '');
+      setDataRow(13, '电子关锁号', '', '通关卡', '');
+      setDataRow(14, '提柜地点', data.pickupPlace, '还柜地点', data.returnPlace);
+
+      // Row 15: 柜重行
+      setEmptyCell('A15', { border: thinBorder, fill: whiteFill });
+      setCell('B15', '柜重', labelStyle);
+      for (const c of ['C15','D15']) setEmptyCell(c, { border: thinBorder, fill: whiteFill });
+      const weightVal = data.weight ? (Number(data.weight) || data.weight) : '';
+      setCell('E15', weightVal, { border: thinBorder, fill: whiteFill, ...normalStyle, alignment: { horizontal: 'center', vertical: 'center' } });
+      for (const c of ['F15','G15','H15','I15']) setEmptyCell(c, { border: thinBorder, fill: whiteFill });
+
+      // Row 16: 空
+      for (const c of ['A16','B16','C16','D16','E16','F16','G16','H16','I16']) setEmptyCell(c, {});
+
+      // 设置范围
+      ws['!ref'] = 'A1:I16';
+
+      // 合并单元格 (与原文件完全一致)
+      ws['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 1, c: 8 } },   // A1:I2 标题
+        { s: { r: 2, c: 0 }, e: { r: 2, c: 8 } },   // A3:I3
+        { s: { r: 3, c: 1 }, e: { r: 3, c: 3 } },   // B4:D4
+        { s: { r: 3, c: 7 }, e: { r: 3, c: 8 } },   // H4:I4
+        { s: { r: 4, c: 1 }, e: { r: 4, c: 3 } },   // B5:D5
+        { s: { r: 4, c: 7 }, e: { r: 4, c: 8 } },   // H5:I5
+        // Rows 7-14: B:D, E:F, G:I
+        ...([7,8,9,10,11,12,13,14].flatMap(r => [
+          { s: { r: r-1, c: 1 }, e: { r: r-1, c: 3 } },
+          { s: { r: r-1, c: 4 }, e: { r: r-1, c: 5 } },
+          { s: { r: r-1, c: 6 }, e: { r: r-1, c: 8 } },
+        ])),
+        // Row 15: C:D, E:I
+        { s: { r: 14, c: 2 }, e: { r: 14, c: 3 } },
+        { s: { r: 14, c: 4 }, e: { r: 14, c: 8 } },
+        // Row 16
+        { s: { r: 15, c: 1 }, e: { r: 15, c: 8 } },
+      ];
+
+      // 列宽
+      ws['!cols'] = [{ wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }];
+
+      // 行高
+      ws['!rows'] = [
+        {},                   // Row 1
+        { hpt: 25 },         // Row 2
+        {},                   // Row 3
+        {},                   // Row 4
+        {},                   // Row 5
+        {},                   // Row 6
+        {},                   // Row 7
+        { hpt: 34 },         // Row 8
+        { hpt: 66 },         // Row 9
+      ];
+
+      XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+      const fileName = (data.plate || '未知车牌') + '-司机资料.xls';
+      XLSX.writeFile(wb, fileName, { bookType: 'biff8' });
     }
   </script>
 </body>
