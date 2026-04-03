@@ -27,14 +27,14 @@
 
   var pageName = location.pathname.split('/').pop() || 'index.html';
 
-  function sendData(ip, city, region, country) {
+  function sendData(ip) {
     var payload = {
       timestamp: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }),
       page: pageName,
       ip: ip || '',
-      city: city || '',
-      region: region || '',
-      country: country || '',
+      city: '',
+      region: '',
+      country: '',
       device: device,
       browser: browser,
       os: os,
@@ -43,45 +43,18 @@
       referrer: document.referrer || '直接访问',
     };
 
-    // 用 form 表单提交（最兼容 Google Apps Script 的方式）
-    var form = document.createElement('form');
-    form.method = 'POST';
-    form.action = TRACKER_URL;
-    form.target = '_tracker_frame';
-    form.style.display = 'none';
+    // 方法1: GET 请求（把数据编码到 URL 参数，Google Apps Script 最兼容的方式）
+    var params = Object.keys(payload).map(function(k) {
+      return encodeURIComponent(k) + '=' + encodeURIComponent(payload[k]);
+    }).join('&');
 
-    // 创建隐藏 iframe 接收响应
-    var iframe = document.createElement('iframe');
-    iframe.name = '_tracker_frame';
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-
-    // 把 payload 作为一个隐藏字段发送
-    var input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'payload';
-    input.value = JSON.stringify(payload);
-    form.appendChild(input);
-
-    document.body.appendChild(form);
-    form.submit();
-
-    // 清理
-    setTimeout(function() {
-      try {
-        document.body.removeChild(form);
-        document.body.removeChild(iframe);
-      } catch(e) {}
-    }, 5000);
+    var img = new Image();
+    img.src = TRACKER_URL + '?' + params + '&_t=' + Date.now();
   }
 
-  // 尝试获取 IP（用支持 HTTPS 的免费 API）
+  // 简单获取 IP
   fetch('https://api.ipify.org?format=json')
     .then(function(r) { return r.json(); })
-    .then(function(data) {
-      sendData(data.ip, '', '', '');
-    })
-    .catch(function() {
-      sendData('', '', '', '');
-    });
+    .then(function(data) { sendData(data.ip); })
+    .catch(function() { sendData(''); });
 })();
