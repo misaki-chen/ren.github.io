@@ -43,27 +43,45 @@
       referrer: document.referrer || '直接访问',
     };
 
-    // 用 sendBeacon（最可靠）或 fetch 发送
-    var body = JSON.stringify(payload);
-    if (navigator.sendBeacon) {
-      navigator.sendBeacon(TRACKER_URL, body);
-    } else {
-      fetch(TRACKER_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: body,
-      }).catch(function() {});
-    }
+    // 用 form 表单提交（最兼容 Google Apps Script 的方式）
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = TRACKER_URL;
+    form.target = '_tracker_frame';
+    form.style.display = 'none';
+
+    // 创建隐藏 iframe 接收响应
+    var iframe = document.createElement('iframe');
+    iframe.name = '_tracker_frame';
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    // 把 payload 作为一个隐藏字段发送
+    var input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'payload';
+    input.value = JSON.stringify(payload);
+    form.appendChild(input);
+
+    document.body.appendChild(form);
+    form.submit();
+
+    // 清理
+    setTimeout(function() {
+      try {
+        document.body.removeChild(form);
+        document.body.removeChild(iframe);
+      } catch(e) {}
+    }, 5000);
   }
 
-  // 尝试获取 IP（用 ip-api.com，免费无需注册）
-  fetch('https://ip-api.com/json/?lang=zh-CN')
+  // 尝试获取 IP（用支持 HTTPS 的免费 API）
+  fetch('https://api.ipify.org?format=json')
     .then(function(r) { return r.json(); })
-    .then(function(geo) {
-      sendData(geo.query, geo.city, geo.regionName, geo.country);
+    .then(function(data) {
+      sendData(data.ip, '', '', '');
     })
     .catch(function() {
-      // IP API 失败也发送基础信息
       sendData('', '', '', '');
     });
 })();
