@@ -57,7 +57,7 @@
     /* 智能识别区 */
     .smart-input-area { margin-bottom: 20px; }
     .smart-input-area textarea {
-      width: 100%; height: 100px; padding: 12px; border: 2px dashed #667eea;
+      width: 100%; height: 300px; padding: 12px; border: 2px dashed #667eea;
       border-radius: 8px; font-size: 14px; resize: vertical;
       font-family: inherit;
     }
@@ -636,19 +636,21 @@
       const driverPhone = [data.driver, data.driverPhone].filter(Boolean).join('/');
       return `
       <table class="confirm-table">
-        <tr class="title-row"><td colspan="4">柜 号 确 认 单</td></tr>
+        <tr class="title-row"><td colspan="4">柜 &nbsp; 号 &nbsp; 确 &nbsp; 认 &nbsp; 单</td></tr>
         <tr class="empty-row"><td colspan="4"></td></tr>
         <tr class="empty-row"><td colspan="4"></td></tr>
         <tr class="header-row">
-          <td style="border-bottom:2px solid #000"><b>TO:</b></td>
-          <td style="border-bottom:2px solid #000">${data.to}</td>
-          <td style="border-bottom:2px solid #000"><b>FROM:</b></td>
+          <td style="border-bottom:2px solid #000">TO:</td>
+          <td style="border-bottom:2px solid #000" colspan="2">${data.to}</td>
+          <td style="border-bottom:none"></td>
+          <td style="border-bottom:2px solid #000">FROM:</td>
           <td style="border-bottom:2px solid #000">${data.from}</td>
         </tr>
         <tr class="header-row">
-          <td style="border-bottom:2px solid #000"><b>装货地点:</b></td>
-          <td style="border-bottom:2px solid #000">${data.loadPlace}</td>
-          <td style="border-bottom:2px solid #000"><b>DATE:</b></td>
+          <td style="border-bottom:2px solid #000">装货地点:</td>
+          <td style="border-bottom:2px solid #000" colspan="2">${data.loadPlace}</td>
+          <td style="border-bottom:none"></td>
+          <td style="border-bottom:2px solid #000">DATE:</td>
           <td style="border-bottom:2px solid #000">${data.date}</td>
         </tr>
         <tr class="empty-row"><td colspan="4"></td></tr>
@@ -656,7 +658,7 @@
           <td class="label-cell">订 仓 号</td>
           <td class="value-cell"><b>${data.booking}</b></td>
           <td class="label-cell">车 &nbsp; 牌</td>
-          <td class="value-cell"><b>${data.plate}</b></td>
+          <td class="value-cell">${data.plate}</td>
         </tr>
         <tr>
           <td class="label-cell">柜 &nbsp; 型</td>
@@ -706,7 +708,7 @@
           <td class="label-cell"></td>
           <td class="label-cell">柜重</td>
           <td class="value-cell"></td>
-          <td class="value-cell"><b>${data.weight}</b></td>
+          <td class="value-cell">${data.weight}</td>
         </tr>
       </table>`;
     }
@@ -746,174 +748,154 @@
     async function exportExcel() {
       const data = getFormData();
       const workbook = new ExcelJS.Workbook();
-      const ws = workbook.addWorksheet('柜号确认单');
+      const ws = workbook.addWorksheet('Sheet1');
 
-      // 列宽设置 (A-H)
-      ws.columns = [
-        { width: 12 }, // A
-        { width: 6 },  // B
-        { width: 16 }, // C
-        { width: 6 },  // D
-        { width: 4 },  // E
-        { width: 12 }, // F
-        { width: 6 },  // G
-        { width: 18 }, // H
-      ];
+      // 列宽：A=18，其余默认（与原文件一致）
+      ws.getColumn(1).width = 18;
+      for (let i = 2; i <= 9; i++) ws.getColumn(i).width = 12;
 
       const thinBorder = {
         top: { style: 'thin' }, bottom: { style: 'thin' },
         left: { style: 'thin' }, right: { style: 'thin' },
       };
-      const thickBottom = {
-        bottom: { style: 'medium' },
-      };
-      const boldFont = { bold: true, size: 12, name: 'Microsoft YaHei' };
+      const thickBottom = { bottom: { style: 'medium' } };
+      const boldFont = { bold: true, size: 11, name: 'Microsoft YaHei' };
       const normalFont = { size: 11, name: 'Microsoft YaHei' };
-      const titleFont = { bold: true, size: 20, name: 'Microsoft YaHei' };
+      const titleFont = { bold: true, size: 18, name: 'Microsoft YaHei' };
+      const whiteFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+      const yellowFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
 
-      // Row 1: 标题 - 柜 号 确 认 单
-      ws.mergeCells('A1:H1');
+      // Row 1-2: 标题横跨 A1:I2
+      ws.mergeCells('A1:I2');
       const titleCell = ws.getCell('A1');
-      titleCell.value = '柜 号 确 认 单';
+      titleCell.value = '柜  号  确  认  单';
       titleCell.font = titleFont;
       titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
-      ws.getRow(1).height = 36;
+      ws.getRow(2).height = 25;
 
-      // Row 2-3: 空行
-      ws.getRow(2).height = 6;
-      ws.getRow(3).height = 6;
+      // Row 3: 空行
+      ws.mergeCells('A3:I3');
 
-      // Row 4: TO / FROM
+      // Row 4: TO: / 光普 / FROM: / 伟航物流
       ws.getCell('A4').value = 'TO:';
-      ws.getCell('A4').font = boldFont;
+      ws.getCell('A4').font = normalFont;
+      ws.getCell('A4').border = thickBottom;
       ws.mergeCells('B4:D4');
       ws.getCell('B4').value = data.to;
       ws.getCell('B4').font = normalFont;
-      // E4 空
-      ws.getCell('F4').value = 'FROM:';
-      ws.getCell('F4').font = boldFont;
-      ws.mergeCells('G4:H4');
-      ws.getCell('G4').value = data.from;
+      ws.getCell('B4').border = thickBottom;
+      // E4-F4 空(无底线，形成间隔)
+      ws.getCell('G4').value = 'FROM:';
       ws.getCell('G4').font = normalFont;
-      // 底线
-      ['A4','B4','C4','D4','F4','G4','H4'].forEach(c => {
-        ws.getCell(c).border = thickBottom;
-      });
+      ws.getCell('G4').border = thickBottom;
+      ws.mergeCells('H4:I4');
+      ws.getCell('H4').value = data.from;
+      ws.getCell('H4').font = normalFont;
+      ws.getCell('H4').border = thickBottom;
 
-      // Row 5: 装货地点 / DATE
+      // Row 5: 装货地点: / 清溪 / DATE: / 03/31/14:00
       ws.getCell('A5').value = '装货地点:';
-      ws.getCell('A5').font = boldFont;
+      ws.getCell('A5').font = normalFont;
+      ws.getCell('A5').border = thickBottom;
       ws.mergeCells('B5:D5');
       ws.getCell('B5').value = data.loadPlace;
       ws.getCell('B5').font = normalFont;
-      ws.getCell('F5').value = 'DATE:';
-      ws.getCell('F5').font = boldFont;
-      ws.mergeCells('G5:H5');
-      ws.getCell('G5').value = data.date;
+      ws.getCell('B5').border = thickBottom;
+      // E5-F5 空(无底线，形成间隔)
+      ws.getCell('G5').value = 'DATE:';
       ws.getCell('G5').font = normalFont;
-      ['A5','B5','C5','D5','F5','G5','H5'].forEach(c => {
-        ws.getCell(c).border = thickBottom;
-      });
+      ws.getCell('G5').border = thickBottom;
+      ws.mergeCells('H5:I5');
+      ws.getCell('H5').value = data.date;
+      ws.getCell('H5').font = normalFont;
+      ws.getCell('H5').border = thickBottom;
 
       // Row 6: 空行
-      ws.getRow(6).height = 6;
 
-      // 辅助：设置一行的4格（label, value, label, value）带边框
+      // 辅助：数据行（A=label1, B-D=val1, E-F=label2, G-I=val2）
       function setDataRow(rowNum, label1, val1, label2, val2, opts = {}) {
-        const row = ws.getRow(rowNum);
-        row.height = opts.height || 22;
+        ws.getRow(rowNum).height = opts.height || 22;
 
-        ws.mergeCells(`A${rowNum}:B${rowNum}`);
-        const cellA = ws.getCell(`A${rowNum}`);
-        cellA.value = label1;
-        cellA.font = boldFont;
-        cellA.alignment = { horizontal: 'center', vertical: 'middle' };
-        cellA.border = thinBorder;
+        // A: label1
+        ws.getCell(`A${rowNum}`).value = label1;
+        ws.getCell(`A${rowNum}`).font = normalFont;
+        ws.getCell(`A${rowNum}`).alignment = { horizontal: 'center', vertical: 'middle' };
+        ws.getCell(`A${rowNum}`).border = thinBorder;
+        ws.getCell(`A${rowNum}`).fill = whiteFill;
+
+        // B-D: val1
+        ws.mergeCells(`B${rowNum}:D${rowNum}`);
+        ws.getCell(`B${rowNum}`).value = val1 || '';
+        ws.getCell(`B${rowNum}`).font = opts.boldVal1 ? boldFont : normalFont;
+        ws.getCell(`B${rowNum}`).alignment = { vertical: 'middle' };
         ws.getCell(`B${rowNum}`).border = thinBorder;
+        ws.getCell(`B${rowNum}`).fill = whiteFill;
 
-        ws.mergeCells(`C${rowNum}:E${rowNum}`);
-        const cellC = ws.getCell(`C${rowNum}`);
-        cellC.value = val1 || '';
-        cellC.font = opts.boldVal1 ? boldFont : normalFont;
-        cellC.alignment = { vertical: 'middle' };
-        cellC.border = thinBorder;
-        ws.getCell(`D${rowNum}`).border = thinBorder;
+        // E-F: label2
+        ws.mergeCells(`E${rowNum}:F${rowNum}`);
+        ws.getCell(`E${rowNum}`).value = label2;
+        ws.getCell(`E${rowNum}`).font = normalFont;
+        ws.getCell(`E${rowNum}`).alignment = { horizontal: 'center', vertical: 'middle' };
         ws.getCell(`E${rowNum}`).border = thinBorder;
+        ws.getCell(`E${rowNum}`).fill = opts.highlightLabel2 ? yellowFill : whiteFill;
 
-        ws.mergeCells(`F${rowNum}:G${rowNum}`);
-        const cellF = ws.getCell(`F${rowNum}`);
-        cellF.value = label2;
-        cellF.font = boldFont;
-        cellF.alignment = { horizontal: 'center', vertical: 'middle' };
-        cellF.border = thinBorder;
-        if (opts.highlightLabel2) {
-          cellF.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
-        }
+        // G-I: val2
+        ws.mergeCells(`G${rowNum}:I${rowNum}`);
+        ws.getCell(`G${rowNum}`).value = val2 || '';
+        ws.getCell(`G${rowNum}`).font = normalFont;
+        ws.getCell(`G${rowNum}`).alignment = { vertical: 'middle' };
         ws.getCell(`G${rowNum}`).border = thinBorder;
-
-        const cellH = ws.getCell(`H${rowNum}`);
-        cellH.value = val2 || '';
-        cellH.font = opts.boldVal2 ? boldFont : normalFont;
-        cellH.alignment = { vertical: 'middle' };
-        cellH.border = thinBorder;
+        ws.getCell(`G${rowNum}`).fill = whiteFill;
       }
 
       const driverPhone = [data.driver, data.driverPhone].filter(Boolean).join('/');
 
-      // Row 7: 订仓号 / 车牌
-      setDataRow(7, '订 仓 号', data.booking, '车　牌', data.plate, { boldVal1: true, boldVal2: true });
-      // Row 8: 柜型 / 司机/电话
-      setDataRow(8, '柜　型', data.containerType, '司机/电话', driverPhone, { boldVal1: true });
-      // Row 9: 柜号 / 订单号 (高行，柜号加粗，订单号黄底)
-      setDataRow(9, '柜　号', data.containerNo, '订单号', data.po, { height: 36, boldVal1: true, highlightLabel2: true });
-      // Row 10: 封条 / 密码
-      setDataRow(10, '封　条', data.sealNo, '密码', '');
-      // Row 11: 出口口岸 / 车架代码
+      // Row 7: 订仓号(值加粗) / 车牌
+      setDataRow(7, '订 仓 号', data.booking, '车    牌', data.plate, { boldVal1: true });
+      // Row 8: 柜型(值加粗) / 司机/电话 (高34px)
+      setDataRow(8, '柜  型', data.containerType, '司机/电话 ', driverPhone, { height: 34, boldVal1: true });
+      // Row 9: 柜号(值加粗) / 订单号(黄底) (高66px)
+      setDataRow(9, '柜  号', data.containerNo, '订单号', data.po, { height: 66, boldVal1: true, highlightLabel2: true });
+      // Row 10-13
+      setDataRow(10, '封  条', data.sealNo, '密码', '');
       setDataRow(11, '出口口岸', '', '车架代码', '');
-      // Row 12: 车头自重 / 车架自重
       setDataRow(12, '车头自重', '', '车架自重', '');
-      // Row 13: 电子关锁号 / 通关卡
       setDataRow(13, '电子关锁号', '', '通关卡', '');
       // Row 14: 提柜地点 / 还柜地点
       setDataRow(14, '提柜地点', data.pickupPlace, '还柜地点', data.returnPlace);
 
-      // Row 15: 柜重行（特殊布局）
-      const r15 = 15;
-      ws.getRow(r15).height = 22;
-      ws.mergeCells(`A${r15}:B${r15}`);
-      ws.getCell(`A${r15}`).border = thinBorder;
-      ws.getCell(`B${r15}`).border = thinBorder;
+      // Row 15: 特殊布局 A=空, B=柜重, C-D=空, E-I=重量值
+      ws.getRow(15).height = 22;
+      ws.getCell('A15').border = thinBorder;
+      ws.getCell('A15').fill = whiteFill;
 
-      ws.mergeCells(`C${r15}:E${r15}`);
-      ws.getCell(`C${r15}`).value = '柜重';
-      ws.getCell(`C${r15}`).font = boldFont;
-      ws.getCell(`C${r15}`).alignment = { horizontal: 'center', vertical: 'middle' };
-      ws.getCell(`C${r15}`).border = thinBorder;
-      ws.getCell(`D${r15}`).border = thinBorder;
-      ws.getCell(`E${r15}`).border = thinBorder;
+      ws.getCell('B15').value = '柜重';
+      ws.getCell('B15').font = normalFont;
+      ws.getCell('B15').alignment = { horizontal: 'center', vertical: 'middle' };
+      ws.getCell('B15').border = thinBorder;
+      ws.getCell('B15').fill = whiteFill;
 
-      ws.mergeCells(`F${r15}:G${r15}`);
-      ws.getCell(`F${r15}`).border = thinBorder;
-      ws.getCell(`G${r15}`).border = thinBorder;
+      ws.mergeCells('C15:D15');
+      ws.getCell('C15').border = thinBorder;
+      ws.getCell('C15').fill = whiteFill;
 
-      ws.getCell(`H${r15}`).value = data.weight;
-      ws.getCell(`H${r15}`).font = boldFont;
-      ws.getCell(`H${r15}`).alignment = { horizontal: 'center', vertical: 'middle' };
-      ws.getCell(`H${r15}`).border = thinBorder;
+      ws.mergeCells('E15:I15');
+      ws.getCell('E15').value = data.weight ? Number(data.weight) || data.weight : '';
+      ws.getCell('E15').font = normalFont;
+      ws.getCell('E15').alignment = { horizontal: 'center', vertical: 'middle' };
+      ws.getCell('E15').border = thinBorder;
+      ws.getCell('E15').fill = whiteFill;
 
-      // ===== 嵌入附件图片（从 I 列开始横向排列）=====
-      // 计算表格区总高度(像素)：Row1-15 的高度之和
-      const tableHeightPx = 36 + 6 + 6 + 22*10 + 36 + 6 + 22; // ≈332px
-      const targetHeightPx = tableHeightPx;
+      // Row 16: 空行
+      ws.mergeCells('B16:I16');
 
-      let imgCol = 9; // I 列 = 第9列
+      // ===== 嵌入附件图片（从 J 列开始，因为表格占 A-I）=====
+      const tableHeightPx = 400; // 近似表格总高度
+      let imgCol = 10; // J 列 = 第10列
       for (const item of attachmentImages) {
-        // 获取图片原始尺寸
         const dims = await getImageDimensions(item.dataUrl);
         const aspectRatio = dims.width / dims.height;
-
-        // 按目标高度等比计算宽度，然后换算为 Excel 列宽（1列宽≈7px）
-        const targetWidthPx = targetHeightPx * aspectRatio;
+        const targetWidthPx = tableHeightPx * aspectRatio;
         const colWidth = Math.max(20, Math.round(targetWidthPx / 7));
         ws.getColumn(imgCol).width = colWidth;
 
@@ -922,10 +904,9 @@
           extension: item.dataUrl.includes('png') ? 'png' : 'jpeg',
         });
 
-        // 使用 ext 指定图片实际像素尺寸，保持比例不变形
         ws.addImage(imageId, {
           tl: { col: imgCol - 1, row: 0 },
-          ext: { width: targetWidthPx, height: targetHeightPx },
+          ext: { width: targetWidthPx, height: tableHeightPx },
         });
 
         imgCol++;
