@@ -193,7 +193,6 @@
   <div class="container">
     <a href="index.html" class="back-link">&larr; 返回首页</a>
     <h1>&#128230; 柜号确认单</h1>
-
     <!-- 智能识别输入 -->
     <div class="section">
       <h2>&#128270; 智能识别输入</h2>
@@ -313,7 +312,8 @@
       <h2>&#128065; 预览与导出</h2>
       <div class="btn-group" style="margin-bottom:16px;">
         <button class="btn btn-primary" onclick="showPreview()">&#128065; 预览</button>
-        <button class="btn btn-success" onclick="exportExcel()">&#128229; 导出 Excel</button>
+        <button class="btn btn-success" onclick="exportExcel('xlsx')">&#128229; 导出 .xlsx (推荐)</button>
+        <button class="btn btn-outline" onclick="exportExcel('xls')">&#128229; 导出 .xls</button>
       </div>
       <div class="preview-container" id="previewContainer">
         <div class="preview-layout" id="previewLayout"></div>
@@ -752,7 +752,7 @@
       });
     }
 
-    async function exportExcel() {
+    async function exportExcel(format) {
       const data = getFormData();
       const workbook = new ExcelJS.Workbook();
       const ws = workbook.addWorksheet('Sheet1');
@@ -920,7 +920,8 @@
       }
 
       // 导出
-      const fileName = (data.plate || '未知车牌') + '-司机资料.xls';
+      const ext = format === 'xls' ? '.xls' : '.xlsx';
+      const fileName = (data.plate || '未知车牌') + '-司机资料' + ext;
       const buffer = await workbook.xlsx.writeBuffer();
       saveAs(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), fileName);
     }
