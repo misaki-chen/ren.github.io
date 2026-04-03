@@ -85,6 +85,15 @@
     }
     .visitor-table td { padding: 6px 10px; border-bottom: 1px solid #1a1a3e; white-space: nowrap; }
     .visitor-table tr:hover td { background: #16213e; }
+    .col-filter-row td {
+      padding: 4px 4px; background: #0f0f23; border-bottom: 2px solid #2a2a4a;
+      position: sticky; top: 32px; z-index: 1;
+    }
+    .col-filter {
+      width: 100%; padding: 4px 6px; border: 1px solid #2a2a4a; border-radius: 4px;
+      background: #16213e; color: #ccc; font-size: 11px;
+    }
+    select.col-filter { cursor: pointer; }
     .table-wrap {
       max-height: 500px; overflow: auto; border-radius: 8px;
       border: 1px solid #2a2a4a;
@@ -221,6 +230,17 @@
                 <th>语言</th>
                 <th>来源</th>
               </tr>
+              <tr class="col-filter-row">
+                <td><input type="text" class="col-filter" data-col="0" placeholder="筛选..." oninput="applyColFilters()"></td>
+                <td><select class="col-filter" data-col="1" onchange="applyColFilters()"><option value="">全部</option></select></td>
+                <td><input type="text" class="col-filter" data-col="2" placeholder="筛选..." oninput="applyColFilters()"></td>
+                <td><select class="col-filter" data-col="6" onchange="applyColFilters()"><option value="">全部</option></select></td>
+                <td><select class="col-filter" data-col="7" onchange="applyColFilters()"><option value="">全部</option></select></td>
+                <td><select class="col-filter" data-col="8" onchange="applyColFilters()"><option value="">全部</option></select></td>
+                <td><input type="text" class="col-filter" data-col="9" placeholder="筛选..." oninput="applyColFilters()"></td>
+                <td><select class="col-filter" data-col="10" onchange="applyColFilters()"><option value="">全部</option></select></td>
+                <td><select class="col-filter" data-col="11" onchange="applyColFilters()"><option value="">全部</option></select></td>
+              </tr>
             </thead>
             <tbody id="visitorList">
               <tr><td colspan="9" class="empty">加载中...</td></tr>
@@ -333,7 +353,8 @@
       });
 
       renderOverview(filteredData);
-      renderTable(filteredData);
+      populateColFilterOptions(filteredData);
+      applyColFilters(); // 会调用 renderTable
       renderPageStats(filteredData);
       renderCharts(filteredData);
     }
@@ -374,6 +395,51 @@
     }
 
     // ===== 渲染表格 =====
+    // ===== 列级筛选（Excel 风格）=====
+    // 列索引映射: 页面=1, 设备=6, 浏览器=7, 系统=8, 语言=10, 来源=11
+    const COL_FILTER_SELECT_COLS = [1, 6, 7, 8, 10, 11];
+
+    function populateColFilterOptions(rows) {
+      COL_FILTER_SELECT_COLS.forEach(col => {
+        const sel = document.querySelector('.col-filter[data-col="' + col + '"]');
+        if (!sel || sel.tagName !== 'SELECT') return;
+        const prev = sel.value;
+        const values = [...new Set(rows.map(r => r[col] || '').filter(Boolean))].sort();
+        sel.innerHTML = '<option value="">全部</option>' + values.map(v =>
+          '<option value="' + v + '"' + (v === prev ? ' selected' : '') + '>' + v + '</option>'
+        ).join('');
+      });
+    }
+
+    function applyColFilters() {
+      const filters = {};
+      document.querySelectorAll('.col-filter').forEach(el => {
+        const col = el.dataset.col;
+        const val = el.value.trim();
+        if (val) filters[col] = val.toLowerCase();
+      });
+
+      let rows = filteredData;
+      if (Object.keys(filters).length > 0) {
+        rows = rows.filter(r => {
+          for (const [col, val] of Object.entries(filters)) {
+            const cell = (r[parseInt(col)] || '').toLowerCase();
+            if (parseInt(col) === 0 || parseInt(col) === 2 || parseInt(col) === 9) {
+              // 文本输入: 模糊匹配
+              if (!cell.includes(val)) return false;
+            } else {
+              // 下拉选择: 精确匹配
+              if (cell !== val) return false;
+            }
+          }
+          return true;
+        });
+      }
+
+      document.getElementById('filteredCount').textContent = rows.length;
+      renderTable(rows);
+    }
+
     function renderTable(rows) {
       const tbody = document.getElementById('visitorList');
       const recent = rows.slice().reverse().slice(0, 200);
