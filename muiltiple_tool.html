@@ -319,8 +319,8 @@
             <div class="upload-area" id="imageUploadArea">
               <div class="text-center">
                 <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-                <h5>拖拽图片到此处 或 点击选择文件</h5>
-                <p class="text-muted">支持 JPG、PNG、GIF、BMP 等格式，可同时选择多张图片</p>
+                <h5>拖拽图片到此处 或 点击选择文件 或 Ctrl+V 粘贴截图</h5>
+                <p class="text-muted">支持 JPG、PNG、GIF、BMP 等格式，可同时选择多张图片，也可直接粘贴截图</p>
                 <button type="button" class="btn btn-primary">
                   <i class="fas fa-folder-open me-2"></i>选择图片文件
                 </button>
@@ -2096,6 +2096,22 @@ B456 CONT002 运输中 处理中
     imageFileInput.addEventListener('change', (e) => {
       const files = Array.from(e.target.files);
       handleImageFiles(files);
+    });
+
+    // Ctrl+V 粘贴截图
+    document.addEventListener('paste', (e) => {
+      const items = e.clipboardData && e.clipboardData.items;
+      if (!items) return;
+      const imageFiles = [];
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          imageFiles.push(item.getAsFile());
+        }
+      }
+      if (imageFiles.length > 0) {
+        e.preventDefault();
+        handleImageFiles(imageFiles);
+      }
     });
 
     // 处理图片文件
