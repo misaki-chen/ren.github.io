@@ -254,8 +254,22 @@ function doGet(e) {
 
     async function loadData(url) {
       try {
-        const res = await fetch(url);
-        const data = await res.json();
+        // Google Apps Script 会 302 重定向，用 no-cors + script 方式兼容
+        const cbName = '_trackerCb_' + Date.now();
+        const data = await new Promise((resolve, reject) => {
+          window[cbName] = function(d) { resolve(d); delete window[cbName]; };
+          // 尝试 fetch（GitHub Pages 上可行）
+          fetch(url, { redirect: 'follow' })
+            .then(r => {
+              if (!r.ok) throw new Error('HTTP ' + r.status);
+              return r.json();
+            })
+            .then(resolve)
+            .catch(() => {
+              // 兜底：用 script 标签 JSONP 方式
+              reject(new Error('fetch 失败，请确认 URL 正确且已部署'));
+            });
+        });
         setStatus('数据加载成功，共 ' + data.length + ' 条记录', 'ok');
         renderData(data);
       } catch(e) {
