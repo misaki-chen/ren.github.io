@@ -1,0 +1,2317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>任总专用</title>
+  <!-- 引入 SheetJS 用于读取和生成 Excel 文件 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- 引入 jsPDF 用于生成PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- 引入 Bootstrap 样式 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- 引入 Font Awesome 图标 -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- 引入 Bootstrap JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <style>
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      background-color: #f8f9fa;
+    }
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .card {
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+    .card-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 12px 12px 0 0 !important;
+      padding: 15px 20px;
+    }
+    .upload-area {
+      border: 2px dashed #ddd;
+      border-radius: 8px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background-color: #fafafa;
+    }
+    .upload-area:hover {
+      border-color: #667eea;
+      background-color: #f0f4ff;
+    }
+    .upload-area.dragover {
+      border-color: #667eea;
+      background-color: #e3f2fd;
+    }
+    .table-container {
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+    }
+    .table {
+      margin-bottom: 0;
+    }
+    .table th {
+      background-color: #f8f9fa;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-top: none;
+    }
+    .search-input {
+      border-radius: 20px;
+      padding: 10px 20px;
+      border: 2px solid #e9ecef;
+      transition: all 0.3s ease;
+    }
+    .search-input:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 20px;
+      padding: 10px 30px;
+      font-weight: 500;
+    }
+    .btn-success {
+      background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+      border: none;
+      border-radius: 20px;
+      padding: 10px 30px;
+      font-weight: 500;
+    }
+    .btn-warning {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      border: none;
+      border-radius: 20px;
+      padding: 10px 30px;
+      font-weight: 500;
+    }
+    .btn-secondary {
+      background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+      border: none;
+      border-radius: 20px;
+      padding: 10px 30px;
+      font-weight: 500;
+    }
+    .btn-info {
+      background: linear-gradient(135deg, #00cec9 0%, #55a3ff 100%);
+      border: none;
+      border-radius: 20px;
+      padding: 10px 30px;
+      font-weight: 500;
+    }
+    .match-result {
+      background-color: #e8f5e8;
+      border-left: 4px solid #28a745;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    .error-message {
+      background-color: #f8d7da;
+      border-left: 4px solid #dc3545;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .highlight {
+      background-color: #fff3cd;
+      font-weight: bold;
+    }
+    .column-selector {
+      margin: 10px 0;
+    }
+    .column-selector select {
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+      padding: 8px 12px;
+    }
+    .batch-mode-container {
+      background-color: #f0f8ff;
+      border: 2px solid #4dabf7;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 15px 0;
+    }
+    .form-check-input:checked {
+      background-color: #667eea;
+      border-color: #667eea;
+    }
+    .batch-textarea {
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .rule-result {
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 8px 0;
+    }
+    .rule-result.success {
+      border-left: 4px solid #28a745;
+      background-color: #f8fff9;
+    }
+    .rule-result.warning {
+      border-left: 4px solid #ffc107;
+      background-color: #fffdf0;
+    }
+    .unmatched-row {
+      background-color: #fff3cd !important;
+      opacity: 0.8;
+    }
+    .matched-row {
+      background-color: #d4edda !important;
+    }
+    .adjust-info {
+      background-color: #e3f2fd;
+      border-left: 4px solid #2196f3;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    /* Tab样式 */
+    .nav-tabs {
+      border-bottom: 2px solid #dee2e6;
+      margin-bottom: 20px;
+    }
+    .nav-tabs .nav-link {
+      border: none;
+      color: #6c757d;
+      font-weight: 500;
+      padding: 12px 20px;
+      border-radius: 8px 8px 0 0;
+      margin-bottom: -2px;
+      transition: all 0.3s ease;
+    }
+    .nav-tabs .nav-link:hover {
+      color: #667eea;
+      background-color: #f8f9fa;
+    }
+    .nav-tabs .nav-link.active {
+      color: #667eea;
+      background-color: #fff;
+      border-bottom: 2px solid #667eea;
+      font-weight: 600;
+    }
+    .tab-content {
+      min-height: 400px;
+    }
+    .tab-pane {
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* 图片转PDF相关样式 */
+    #imageUploadArea {
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    #imageUploadArea.dragover {
+      border-color: #007bff;
+      background-color: #e3f2fd;
+      transform: scale(1.02);
+    }
+    
+    .image-preview-item {
+      position: relative;
+      margin-bottom: 15px;
+    }
+    
+    .image-preview-item img {
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease;
+    }
+    
+    .image-preview-item:hover img {
+      transform: scale(1.05);
+    }
+    
+    .progress {
+      height: 25px;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    
+    #imagePreviewList .card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    #imagePreviewList .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <a href="index.html" class="btn btn-outline-primary btn-sm mb-3"><i class="fas fa-arrow-left me-1"></i>返回首页</a>
+    <div class="text-center mb-4">
+      <h1 class="display-4 text-primary">
+        <i class="fas fa-tools me-3"></i>
+        任总专用多功能工具
+      </h1>
+      <p class="lead text-muted">图片转PDF、Excel数据处理等实用工具集合</p>
+    </div>
+
+    <!-- 图片转PDF功能区域 -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-file-pdf me-2"></i>图片转PDF工具</h5>
+      </div>
+      <div class="card-body">
+        <div class="row mb-3">
+          <div class="col-md-12">
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              <strong>图片转PDF功能：</strong>支持批量上传多张图片（JPG、PNG、GIF等格式），自动生成PDF文件下载
+            </div>
+          </div>
+        </div>
+
+        <!-- 图片上传区域 -->
+        <div class="row mb-3">
+          <div class="col-md-12">
+            <label class="form-label">
+              <i class="fas fa-upload me-2"></i>选择图片文件
+              <span class="badge bg-success ms-2">支持多选</span>
+            </label>
+            <div class="upload-area" id="imageUploadArea">
+              <div class="text-center">
+                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                <h5>拖拽图片到此处 或 点击选择文件</h5>
+                <p class="text-muted">支持 JPG、PNG、GIF、BMP 等格式，可同时选择多张图片</p>
+                <button type="button" class="btn btn-primary">
+                  <i class="fas fa-folder-open me-2"></i>选择图片文件
+                </button>
+              </div>
+              <input type="file" id="imageFileInput" multiple accept="image/*" style="display: none;">
+            </div>
+          </div>
+        </div>
+
+        <!-- 图片预览区域 -->
+        <div class="row mb-3" id="imagePreviewContainer" style="display: none;">
+          <div class="col-md-12">
+            <div class="card border-primary">
+              <div class="card-header bg-primary text-white">
+                <h6 class="mb-0">
+                  <i class="fas fa-images me-2"></i>图片预览
+                  <span class="badge bg-light text-dark ms-2" id="imageCount">0 张图片</span>
+                </h6>
+              </div>
+              <div class="card-body">
+                <div id="imagePreviewList" class="row g-3"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PDF设置 -->
+        <div class="row mb-3" id="pdfSettings" style="display: none;">
+          <div class="col-md-12">
+            <div class="card border-warning">
+              <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0">
+                  <i class="fas fa-cog me-2"></i>PDF生成设置
+                </h6>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-3">
+                    <label class="form-label">页面方向</label>
+                    <select class="form-select" id="pageOrientation">
+                      <option value="portrait">竖向（Portrait）</option>
+                      <option value="landscape">横向（Landscape）</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label">页面大小</label>
+                    <select class="form-select" id="pageSize">
+                      <option value="a4">A4</option>
+                      <option value="a3">A3</option>
+                      <option value="letter">Letter</option>
+                      <option value="legal">Legal</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label">图片排列</label>
+                    <select class="form-select" id="imageLayout">
+                      <option value="one-per-page">每页一张图片</option>
+                      <option value="fit-to-page">自适应页面大小</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label">PDF文件名</label>
+                    <input type="text" class="form-control" id="pdfFileName" placeholder="图片合集" value="图片合集">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="row mb-3" id="pdfActions" style="display: none;">
+          <div class="col-md-3">
+            <button class="btn btn-success btn-lg w-100" id="generatePdfBtn">
+              <i class="fas fa-file-pdf me-2"></i>生成PDF
+            </button>
+          </div>
+          <div class="col-md-3">
+            <button class="btn btn-warning btn-lg w-100" id="clearImagesBtn">
+              <i class="fas fa-trash me-2"></i>清空图片
+            </button>
+          </div>
+          <div class="col-md-6">
+            <div class="progress" id="conversionProgress" style="display: none;">
+              <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                   role="progressbar" style="width: 0%" id="progressBar">
+                <span id="progressText">0%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 转换结果 -->
+        <div id="pdfResults" class="mt-3"></div>
+      </div>
+    </div>
+
+    <!-- Excel文件处理区域 -->
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-file-excel me-2"></i>Excel数据处理工具</h5>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info mb-3">
+          <i class="fas fa-info-circle me-2"></i>
+          <strong>Excel数据处理功能：</strong>上传Excel文件进行智能匹配、数据填充和格式化等操作
+        </div>
+        <div class="upload-area" id="uploadArea">
+          <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+          <h5>拖拽 Excel 文件到这里，或点击选择文件</h5>
+          <p class="text-muted">支持 .xlsx 和 .xls 格式</p>
+          <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none;">
+        </div>
+        <div id="fileInfo" class="mt-3" style="display: none;">
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            <span id="fileName"></span> - <span id="fileSize"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 数据表格展示 -->
+    <div class="card" id="tableCard" style="display: none;">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-table me-2"></i>数据表格</h5>
+        <button class="btn btn-success btn-lg" id="exportBtn">
+          <i class="fas fa-file-excel me-2"></i>导出 Excel 文件
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="table-container">
+          <table class="table table-striped table-hover" id="dataTable">
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 数据操作区域 -->
+    <div class="card" id="operationsCard" style="display: none;">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>数据操作</h5>
+      </div>
+      <div class="card-body">
+        <!-- 标签导航 -->
+        <ul class="nav nav-tabs" id="operationTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="add-row-tab" data-bs-toggle="tab" data-bs-target="#add-row-pane" type="button" role="tab">
+              <i class="fas fa-plus-circle me-2"></i>新增行
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="smart-match-tab" data-bs-toggle="tab" data-bs-target="#smart-match-pane" type="button" role="tab">
+              <i class="fas fa-search me-2"></i>智能匹配
+            </button>
+          </li>
+           <li class="nav-item" role="presentation">
+            <button class="nav-link" id="data-adjust-tab" data-bs-toggle="tab" data-bs-target="#data-adjust-pane" type="button" role="tab">
+              <i class="fas fa-sort me-2"></i>数据调整
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="format-data-tab" data-bs-toggle="tab" data-bs-target="#format-data-pane" type="button" role="tab">
+              <i class="fas fa-magic me-2"></i>格式化数据
+            </button>
+          </li>
+        </ul>
+
+        <!-- 标签内容 -->
+        <div class="tab-content" id="operationTabContent">
+          <!-- 新增行标签页 -->
+          <div class="tab-pane fade show active" id="add-row-pane" role="tabpanel">
+            <div class="row mb-3">
+              <div class="col-md-12">
+                <label class="form-label">
+                  <i class="fas fa-edit me-2"></i>批量录入数据
+                  <span class="badge bg-success ms-2">支持多行同时录入</span>
+                </label>
+                <textarea class="form-control" id="addRowInput" rows="8" 
+                          placeholder="输入格式：列名：值,列名：值,列名：值...（每行一条记录）
+
+示例：
+车牌：粤A12345,姓名：张三,电话：13800138000,身份证号码：440123199001010001
+车牌：粤B67890,姓名：李四,电话：13900139000,身份证号码：440124199002020002
+车牌：粤C11111,姓名：王五,电话：13700137000,身份证号码：440125199003030003
+
+注意：请确保列名与表格中的列名完全一致"></textarea>
+                <small class="text-muted mt-2 d-block">
+                  <i class="fas fa-info-circle me-1"></i>
+                  <strong>格式说明：</strong>每行输入一条记录，格式为"列名：值,列名：值,列名：值..."<br>
+                  <i class="fas fa-list me-1"></i>
+                  <strong>支持列名：</strong><span id="availableColumns" class="text-primary">等待加载...</span>
+                </small>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <button class="btn btn-success btn-lg w-100" id="addRowBtn">
+                  <i class="fas fa-plus me-2"></i>添加新行
+                </button>
+              </div>
+              <div class="col-md-6">
+                <button class="btn btn-secondary btn-lg w-100" id="clearAddRowBtn">
+                  <i class="fas fa-eraser me-2"></i>清空输入
+                </button>
+              </div>
+            </div>
+            <div id="addRowResults" class="mt-3"></div>
+          </div>
+
+          <!-- 智能匹配标签页 -->
+          <div class="tab-pane fade" id="smart-match-pane" role="tabpanel">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="column-selector">
+                  <label class="form-label">选择要匹配的列（如：拖头车牌）</label>
+                  <select class="form-select" id="targetColumn">
+                    <option value="">请选择列...</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="column-selector">
+                  <label class="form-label">选择要填充的列（支持多个，按顺序对应批量规则中的值）</label>
+                  <select class="form-select" id="fillColumn" multiple>
+                    <option value="">请选择列...</option>
+                  </select>
+                  <small class="text-muted mt-1">
+                    <i class="fas fa-info-circle me-1"></i>
+                    可按住 Ctrl/Cmd 键选择多个列，或在下方输入列名（空格分割）
+                  </small>
+                  <input type="text" class="form-control mt-2" id="fillColumnText" 
+                         placeholder="或输入列名，多个列用空格分割，如：柜号 备注 状态">
+                  <small class="text-info mt-1 d-block">
+                    <i class="fas fa-magic me-1"></i>
+                    <strong>顺序说明：</strong>第1个选择的列对应批量规则中第2个值，第2个选择的列对应第3个值，以此类推
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            <!-- 批量匹配模式 -->
+            <div id="batchMatchMode" class="batch-mode-container">
+              <div class="row">
+                <div class="col-md-12">
+                  <label class="form-label">
+                    <i class="fas fa-magic me-2"></i>批量匹配规则
+                    <span class="badge bg-info ms-2">支持多列按顺序填充</span>
+                  </label>
+                  <textarea class="form-control batch-textarea" id="batchInput" rows="12" 
+                            placeholder="输入格式：匹配文本 空格 填充值1 空格 填充值2 空格 填充值3...，每行一条规则
+
+示例（单列填充）：
+A123 CONT001
+B456 CONT002
+粤C789 CONT003
+
+示例（多列填充）：
+A123 CONT001 已装箱 完成
+B456 CONT002 运输中 处理中
+粤C789 CONT003 已到港 完成
+
+支持车牌部分匹配，一行一个规则"></textarea>
+                  <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    <strong>格式说明：</strong>每行输入"匹配文本 空格 填充值1 空格 填充值2..."<br>
+                    <i class="fas fa-sort me-1"></i>
+                    <strong>顺序对应：</strong>第1个值填充到第1个选择的列，第2个值填充到第2个选择的列，以此类推
+                  </small>
+                </div>
+              </div>
+              <div class="row mt-3">
+                <div class="col-md-12">
+                  <button class="btn btn-primary btn-lg w-100" id="batchMatchBtn">
+                    <i class="fas fa-magic me-2"></i>批量匹配并填充
+                    <span class="badge bg-light text-dark ms-2">支持多列顺序填充</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div id="matchResults" class="mt-3"></div>
+          </div>
+
+          <!-- 格式化数据标签页 -->
+          <div class="tab-pane fade" id="format-data-pane" role="tabpanel">
+            <div class="row mb-3">
+              <div class="col-md-12">
+                <label class="form-label">
+                  <i class="fas fa-code me-2"></i>原始数据输入
+                  <span class="badge bg-info ms-2">支持多种格式自动识别</span>
+                </label>
+                <textarea class="form-control" id="rawDataInput" rows="10" 
+                          placeholder="粘贴你的原始数据，支持多种格式：
+
+示例格式1（键值对）：
+车牌：粤A12345
+姓名：张三
+电话：13800138000
+身份证号码：440123199001010001
+
+示例格式2（表格格式）：
+车牌    姓名    电话            身份证号码
+粤A12345 张三   13800138000    440123199001010001
+粤B67890 李四   13900139000    440124199002020002
+
+示例格式3（JSON格式）：
+{&quot;车牌&quot;: &quot;粤A12345&quot;, &quot;姓名&quot;: &quot;张三&quot;, &quot;电话&quot;: &quot;13800138000&quot;}
+
+示例格式4（逗号分隔）：
+粤A12345,张三,13800138000,440123199001010001
+粤B67890,李四,13900139000,440124199002020002"></textarea>
+                <small class="text-muted mt-2 d-block">
+                  <i class="fas fa-info-circle me-1"></i>
+                  <strong>支持格式：</strong>键值对（冒号分隔）、表格格式（空格/制表符分隔）、JSON格式、CSV格式等<br>
+                  <i class="fas fa-lightbulb me-1"></i>
+                  <strong>智能识别：</strong>系统会自动识别数据格式并进行相应转换
+                </small>
+              </div>
+            </div>
+
+            <!-- 格式化选项 -->
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label">数据格式类型</label>
+                <select class="form-select" id="formatType">
+                  <option value="auto">自动识别</option>
+                  <option value="keyvalue">键值对格式（字段：值）</option>
+                  <option value="table">表格格式（空格/制表符分隔）</option>
+                  <option value="csv">CSV格式（逗号分隔）</option>
+                  <option value="json">JSON格式</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">列名映射方式</label>
+                <select class="form-select" id="columnMapping">
+                  <option value="auto">使用表格现有列名</option>
+                  <option value="manual">手动指定列名顺序</option>
+                </select>
+                <input type="text" class="form-control mt-2" id="manualColumns" 
+                       placeholder="手动指定列名顺序，用空格分隔，如：车牌 姓名 电话 身份证号码" 
+                       style="display: none;">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-3">
+                <button class="btn btn-primary btn-lg w-100" id="formatDataBtn">
+                  <i class="fas fa-magic me-2"></i>格式化数据
+                </button>
+              </div>
+              <div class="col-md-3">
+                <button class="btn btn-success btn-lg w-100" id="copyFormattedBtn" disabled>
+                  <i class="fas fa-copy me-2"></i>复制结果
+                </button>
+              </div>
+              <div class="col-md-3">
+                <button class="btn btn-info btn-lg w-100" id="fillToAddRowBtn" disabled>
+                  <i class="fas fa-arrow-right me-2"></i>填充到新增行
+                </button>
+              </div>
+              <div class="col-md-3">
+                <button class="btn btn-secondary btn-lg w-100" id="clearFormatBtn">
+                  <i class="fas fa-eraser me-2"></i>清空数据
+                </button>
+              </div>
+            </div>
+
+            <!-- 格式化结果 -->
+            <div id="formatResults" class="mt-3"></div>
+
+            <!-- 格式化后的数据展示 -->
+            <div id="formattedDataContainer" class="mt-3" style="display: none;">
+              <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                  <h6 class="mb-0">
+                    <i class="fas fa-check-circle me-2"></i>格式化结果
+                    <span class="badge bg-light text-dark ms-2">可直接复制到新增行</span>
+                  </h6>
+                </div>
+                <div class="card-body">
+                  <textarea class="form-control" id="formattedDataOutput" rows="8" readonly 
+                            style="font-family: 'Courier New', monospace; font-size: 13px;"></textarea>
+                  <small class="text-success mt-2 d-block">
+                    <i class="fas fa-arrow-right me-1"></i>
+                    复制上方内容到"新增行"标签页的输入框中，即可批量添加数据
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 数据调整标签页 -->
+          <div class="tab-pane fade" id="data-adjust-pane" role="tabpanel">
+            <div class="row">
+              <div class="col-md-4">
+                <button class="btn btn-warning btn-lg w-100" id="adjustFormatBtn">
+                  <i class="fas fa-sort-amount-down me-2"></i>调整格式
+                  <small class="d-block">将未匹配的行移到底部</small>
+                </button>
+              </div>
+              <div class="col-md-4">
+                <button class="btn btn-info btn-lg w-100" id="reorderNumberBtn">
+                  <i class="fas fa-list-ol me-2"></i>序号重排
+                  <small class="d-block">重新生成连续序号</small>
+                </button>
+              </div>
+              <div class="col-md-4">
+                <button class="btn btn-secondary btn-lg w-100" id="resetOrderBtn">
+                  <i class="fas fa-undo me-2"></i>恢复原始顺序
+                  <small class="d-block">恢复文件原始排序</small>
+                </button>
+              </div>
+            </div>
+            
+            <!-- 序号重排配置 -->
+            <div class="row mt-3" id="reorderConfig" style="display: none;">
+              <div class="col-md-12">
+                <div class="card border-info">
+                  <div class="card-body">
+                    <h6 class="card-title">
+                      <i class="fas fa-cog me-2"></i>序号重排配置
+                    </h6>
+                    <div class="row">
+                      <div class="col-md-4">
+                        <label class="form-label">选择序号列</label>
+                        <select class="form-select" id="numberColumn">
+                          <option value="">请选择序号列...</option>
+                        </select>
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label">起始数字</label>
+                        <input type="number" class="form-control" id="startNumber" value="1" min="0">
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label">步长</label>
+                        <input type="number" class="form-control" id="stepNumber" value="1" min="1">
+                      </div>
+                      <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <button class="btn btn-success w-100" id="executeReorderBtn">
+                          <i class="fas fa-play me-1"></i>执行
+                        </button>
+                      </div>
+                    </div>
+                    <small class="text-muted mt-2 d-block">
+                      <i class="fas fa-info-circle me-1"></i>
+                      将为选中的列重新生成连续序号，从起始数字开始，按步长递增
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div id="adjustResults" class="mt-3"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <script>
+    let currentData = [];
+    let originalData = [];
+    let headers = [];
+    let importedFileName = ''; // 存储导入的文件名
+
+    // 文件上传处理
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+
+    // 拖拽上传
+    uploadArea.addEventListener('click', () => fileInput.click());
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleFile(files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleFile(e.target.files[0]);
+      }
+    });
+
+    // 处理文件
+    function handleFile(file) {
+      if (!file.name.match(/\.(xlsx|xls)$/)) {
+        showError('请选择有效的 Excel 文件（.xlsx 或 .xls）');
+        return;
+      }
+
+      // 清空之前的数据和界面状态
+      clearPreviousData();
+
+      // 保存导入的文件名（去掉扩展名）
+      importedFileName = file.name.replace(/\.(xlsx|xls)$/i, '');
+
+      fileName.textContent = file.name;
+      fileSize.textContent = formatFileSize(file.size);
+      fileInfo.style.display = 'block';
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+          
+          if (jsonData.length > 0) {
+            headers = jsonData[0];
+            
+            // 过滤掉完全空白的行
+            const filteredData = jsonData.slice(1).filter(row => {
+              // 检查行是否完全为空
+              return row && row.some(cell => 
+                cell !== null && 
+                cell !== undefined && 
+                cell.toString().trim() !== ''
+              );
+            });
+            
+            currentData = filteredData.map((row, index) => {
+              const obj = { _rowId: index };
+              headers.forEach((header, colIndex) => {
+                const cellValue = row[colIndex];
+                // 处理日期格式
+                if (cellValue && typeof cellValue === 'number' && cellValue > 25569) {
+                  // 检查是否是Excel日期序列号（从1900年1月1日开始计算）
+                  try {
+                    const excelDate = XLSX.SSF.parse_date_code(cellValue);
+                    if (excelDate && excelDate.y && excelDate.m && excelDate.d) {
+                      // 格式化为YYYY-MM-DD
+                      const year = excelDate.y;
+                      const month = String(excelDate.m).padStart(2, '0');
+                      const day = String(excelDate.d).padStart(2, '0');
+                      obj[header] = `${year}年${month}月${day}日`;
+                    } else {
+                      obj[header] = cellValue || '';
+                    }
+                  } catch (e) {
+                    obj[header] = cellValue || '';
+                  }
+                } else {
+                  obj[header] = cellValue || '';
+                }
+              });
+              return obj;
+            });
+            originalData = JSON.parse(JSON.stringify(currentData));
+            
+            displayTable();
+            setupColumnSelectors();
+            showCards();
+            
+            // 显示导入统计信息
+            const totalRows = jsonData.length - 1; // 减去表头
+            const validRows = currentData.length;
+            const emptyRows = totalRows - validRows;
+            
+            if (emptyRows > 0) {
+              const fileInfoElement = document.getElementById('fileInfo');
+              fileInfoElement.innerHTML += `
+                <div class="alert alert-success mt-2">
+                  <i class="fas fa-check-circle me-2"></i>
+                  数据导入完成！共 ${totalRows} 行数据，过滤了 ${emptyRows} 个空白行，有效数据 ${validRows} 行
+                </div>
+              `;
+            }
+          }
+        } catch (error) {
+          showError('文件读取失败：' + error.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    // 清空之前的数据和界面状态
+    function clearPreviousData() {
+      // 清空数据
+      currentData = [];
+      originalData = [];
+      headers = [];
+      importedFileName = ''; // 清空导入的文件名
+      
+      // 清空表格
+      document.getElementById('tableHead').innerHTML = '';
+      document.getElementById('tableBody').innerHTML = '';
+      
+      // 清空选择器
+      document.getElementById('targetColumn').innerHTML = '<option value="">请选择列...</option>';
+      document.getElementById('fillColumn').innerHTML = '<option value="">请选择列...</option>';
+      document.getElementById('numberColumn').innerHTML = '<option value="">请选择序号列...</option>';
+      
+      // 清空输入框
+      document.getElementById('batchInput').value = '';
+      document.getElementById('fillColumnText').value = '';
+      document.getElementById('addRowInput').value = '';
+      
+      // 重置批量模式 - 移除相关代码，只保留批量模式
+      
+      // 清空结果显示
+      document.getElementById('matchResults').innerHTML = '';
+      document.getElementById('adjustResults').innerHTML = '';
+      document.getElementById('addRowResults').innerHTML = '';
+      
+      // 隐藏序号重排配置
+      document.getElementById('reorderConfig').style.display = 'none';
+      
+      // 重置序号重排输入
+      document.getElementById('startNumber').value = '1';
+      document.getElementById('stepNumber').value = '1';
+      
+      // 隐藏所有卡片
+      document.getElementById('tableCard').style.display = 'none';
+      document.getElementById('operationsCard').style.display = 'none';
+      
+      // 移除所有高亮
+      removeHighlights();
+    }
+
+    // 格式化单元格值（处理日期等特殊格式）
+    function formatCellValue(value) {
+      if (value === null || value === undefined) return '';
+      
+      // 如果是数字且可能是Excel日期
+      if (typeof value === 'number' && value > 25569 && value < 2958465) {
+        try {
+          // 尝试解析为日期
+          const excelDate = XLSX.SSF.parse_date_code(value);
+          if (excelDate && excelDate.y && excelDate.m && excelDate.d) {
+            const year = excelDate.y;
+            const month = String(excelDate.m).padStart(2, '0');
+            const day = String(excelDate.d).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+          }
+        } catch (e) {
+          // 如果解析失败，返回原始值
+          return value.toString();
+        }
+      }
+      
+      // 如果是Date对象
+      if (value instanceof Date) {
+        const year = value.getFullYear();
+        const month = String(value.getMonth() + 1).padStart(2, '0');
+        const day = String(value.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+      
+      return value.toString();
+    }
+
+    // 显示表格
+    function displayTable() {
+      const tableHead = document.getElementById('tableHead');
+      const tableBody = document.getElementById('tableBody');
+      
+      // 创建表头
+      tableHead.innerHTML = `
+        <tr>
+          ${headers.map(header => `<th>${header}</th>`).join('')}
+        </tr>
+      `;
+      
+      // 创建表格内容
+      tableBody.innerHTML = currentData.map(row => `
+        <tr>
+          ${headers.map(header => `<td>${formatCellValue(row[header])}</td>`).join('')}
+        </tr>
+      `).join('');
+    }
+
+    // 设置列选择器
+    function setupColumnSelectors() {
+      const targetColumn = document.getElementById('targetColumn');
+      const fillColumn = document.getElementById('fillColumn');
+      const numberColumn = document.getElementById('numberColumn');
+      const availableColumns = document.getElementById('availableColumns');
+      
+      const options = headers.map(header => 
+        `<option value="${header}">${header}</option>`
+      ).join('');
+      
+      targetColumn.innerHTML = '<option value="">请选择列...</option>' + options;
+      fillColumn.innerHTML = '<option value="">请选择列...</option>' + options;
+      numberColumn.innerHTML = '<option value="">请选择序号列...</option>' + options;
+      
+      // 更新可用列名显示
+      availableColumns.textContent = headers.join('、');
+    }
+
+    // 获取要填充的列
+    function getFillColumns() {
+      const fillColumnSelect = document.getElementById('fillColumn');
+      const fillColumnText = document.getElementById('fillColumnText').value.trim();
+      
+      let columns = [];
+      
+      // 从下拉选择器获取选中的列
+      const selectedOptions = Array.from(fillColumnSelect.selectedOptions);
+      selectedOptions.forEach(option => {
+        if (option.value && !columns.includes(option.value)) {
+          columns.push(option.value);
+        }
+      });
+      
+      // 从文本输入获取列名
+      if (fillColumnText) {
+        const textColumns = fillColumnText.split(/\s+/).filter(col => col.trim());
+        textColumns.forEach(col => {
+          col = col.trim();
+          // 检查列是否存在
+          if (headers.includes(col) && !columns.includes(col)) {
+            columns.push(col);
+          }
+        });
+      }
+      
+      return columns;
+    }
+
+    // 批量匹配功能
+    document.getElementById('batchMatchBtn').addEventListener('click', () => {
+      const targetColumn = document.getElementById('targetColumn').value;
+      const fillColumns = getFillColumns();
+      const batchInput = document.getElementById('batchInput').value.trim();
+      
+      if (!targetColumn || fillColumns.length === 0 || !batchInput) {
+        showError('请选择列并输入批量匹配规则');
+        return;
+      }
+      
+      performBatchMatch(targetColumn, fillColumns, batchInput);
+    });
+
+    // 新增行功能
+    document.getElementById('addRowBtn').addEventListener('click', () => {
+      const addRowInput = document.getElementById('addRowInput').value.trim();
+      
+      if (!addRowInput) {
+        showAddRowError('请输入要添加的行数据');
+        return;
+      }
+      
+      performAddRows(addRowInput);
+    });
+
+    // 清空新增行输入
+    document.getElementById('clearAddRowBtn').addEventListener('click', () => {
+      document.getElementById('addRowInput').value = '';
+      document.getElementById('addRowResults').innerHTML = '';
+    });
+
+    // 格式化数据功能事件监听
+    document.getElementById('formatDataBtn').addEventListener('click', () => {
+      const rawData = document.getElementById('rawDataInput').value.trim();
+      const formatType = document.getElementById('formatType').value;
+      const columnMapping = document.getElementById('columnMapping').value;
+      const manualColumns = document.getElementById('manualColumns').value.trim();
+      
+      if (!rawData) {
+        showFormatError('请输入要格式化的原始数据');
+        return;
+      }
+      
+      performDataFormat(rawData, formatType, columnMapping, manualColumns);
+    });
+
+    // 复制格式化结果
+    document.getElementById('copyFormattedBtn').addEventListener('click', () => {
+      const formattedOutput = document.getElementById('formattedDataOutput');
+      formattedOutput.select();
+      document.execCommand('copy');
+      
+      // 显示复制成功提示
+      const button = document.getElementById('copyFormattedBtn');
+      const originalText = button.innerHTML;
+      button.innerHTML = '<i class="fas fa-check me-2"></i>已复制';
+      button.disabled = true;
+      
+      setTimeout(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+      }, 2000);
+    });
+
+    // 填充到新增行
+    document.getElementById('fillToAddRowBtn').addEventListener('click', () => {
+      const formattedData = document.getElementById('formattedDataOutput').value;
+      if (formattedData) {
+        // 切换到新增行标签页
+        const addRowTab = document.getElementById('add-row-tab');
+        const addRowTabInstance = new bootstrap.Tab(addRowTab);
+        addRowTabInstance.show();
+        
+        // 填充数据到新增行输入框
+        document.getElementById('addRowInput').value = formattedData;
+        
+        // 显示成功提示
+        const button = document.getElementById('fillToAddRowBtn');
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check me-2"></i>已填充';
+        button.disabled = true;
+        
+        setTimeout(() => {
+          button.innerHTML = originalText;
+          button.disabled = false;
+        }, 2000);
+      }
+    });
+
+    // 清空格式化数据
+    document.getElementById('clearFormatBtn').addEventListener('click', () => {
+      document.getElementById('rawDataInput').value = '';
+      document.getElementById('formattedDataOutput').value = '';
+      document.getElementById('formatResults').innerHTML = '';
+      document.getElementById('formattedDataContainer').style.display = 'none';
+      document.getElementById('copyFormattedBtn').disabled = true;
+      document.getElementById('fillToAddRowBtn').disabled = true;
+    });
+
+    // 列名映射方式改变
+    document.getElementById('columnMapping').addEventListener('change', (e) => {
+      const manualColumns = document.getElementById('manualColumns');
+      if (e.target.value === 'manual') {
+        manualColumns.style.display = 'block';
+      } else {
+        manualColumns.style.display = 'none';
+      }
+    });
+
+    // 批量模式切换 - 移除此功能，只保留批量模式
+
+    // 调整格式按钮
+    document.getElementById('adjustFormatBtn').addEventListener('click', () => {
+      const fillColumns = getFillColumns();
+      
+      if (fillColumns.length === 0) {
+        showAdjustError('请先选择要填充的列，以便识别哪些行未匹配');
+        return;
+      }
+      
+      adjustDataFormat(fillColumns);
+    });
+
+    // 恢复原始顺序按钮
+    document.getElementById('resetOrderBtn').addEventListener('click', () => {
+      resetToOriginalOrder();
+    });
+
+    // 序号重排按钮
+    document.getElementById('reorderNumberBtn').addEventListener('click', () => {
+      const reorderConfig = document.getElementById('reorderConfig');
+      if (reorderConfig.style.display === 'none') {
+        reorderConfig.style.display = 'block';
+      } else {
+        reorderConfig.style.display = 'none';
+      }
+    });
+
+    // 执行序号重排按钮
+    document.getElementById('executeReorderBtn').addEventListener('click', () => {
+      const numberColumn = document.getElementById('numberColumn').value;
+      const startNumber = parseInt(document.getElementById('startNumber').value) || 1;
+      const stepNumber = parseInt(document.getElementById('stepNumber').value) || 1;
+      
+      if (!numberColumn) {
+        showAdjustError('请选择要重排序号的列');
+        return;
+      }
+      
+      executeReorder(numberColumn, startNumber, stepNumber);
+    });
+
+    // 执行批量匹配
+    function performBatchMatch(targetColumn, fillColumns, batchInput) {
+      const matchResults = document.getElementById('matchResults');
+      const lines = batchInput.split('\n').filter(line => line.trim());
+      
+      let totalMatches = 0;
+      const allMatches = [];
+      const errors = [];
+      
+      // 解析批量输入
+      const rules = [];
+      lines.forEach((line, lineIndex) => {
+        const parts = line.trim().split(/\s+/);
+        if (parts.length >= 2) {
+          const searchText = parts[0];
+          const fillValues = parts.slice(1); // 获取所有填充值
+          rules.push({ searchText, fillValues, lineNumber: lineIndex + 1 });
+        } else {
+          errors.push(`第 ${lineIndex + 1} 行格式错误：${line}`);
+        }
+      });
+      
+      if (rules.length === 0) {
+        showError('没有找到有效的匹配规则，请检查输入格式');
+        return;
+      }
+      
+      // 执行批量匹配
+      rules.forEach(rule => {
+        let ruleMatches = 0;
+        const ruleMatchDetails = [];
+        
+        currentData.forEach((row, index) => {
+          const cellValue = String(row[targetColumn] || '');
+          if (isMatch(cellValue, rule.searchText)) {
+            // 按顺序向选中的列填充值
+            const columnFillDetails = [];
+            fillColumns.forEach((column, columnIndex) => {
+              if (columnIndex < rule.fillValues.length) {
+                const fillValue = rule.fillValues[columnIndex];
+                row[column] = fillValue;
+                columnFillDetails.push(`${column}: "${fillValue}"`);
+              }
+            });
+            
+            ruleMatchDetails.push({
+              rowIndex: index + 1,
+              targetValue: cellValue,
+              columnFillDetails: columnFillDetails
+            });
+            ruleMatches++;
+            totalMatches++;
+          }
+        });
+        
+        allMatches.push({
+          searchText: rule.searchText,
+          fillValues: rule.fillValues,
+          lineNumber: rule.lineNumber,
+          matches: ruleMatches,
+          details: ruleMatchDetails
+        });
+      });
+      
+      // 更新表格显示
+      displayTable();
+      
+      // 显示结果
+      let resultsHtml = '';
+      
+      if (errors.length > 0) {
+        resultsHtml += `
+          <div class="error-message mb-3">
+            <h6><i class="fas fa-exclamation-triangle me-2"></i>格式错误</h6>
+            ${errors.map(error => `<small class="d-block">${error}</small>`).join('')}
+          </div>
+        `;
+      }
+      
+      if (totalMatches > 0) {
+        resultsHtml += `
+          <div class="match-result">
+            <h6><i class="fas fa-check-circle me-2"></i>批量匹配完成！</h6>
+            <p>总共处理 ${rules.length} 条规则，匹配了 ${totalMatches} 个项目，已按顺序填充到以下列：${fillColumns.join('、')}</p>
+            <div class="mt-3">
+              <h6>详细结果：</h6>
+              ${allMatches.map(match => `
+                <div class="rule-result ${match.matches > 0 ? 'success' : 'warning'}">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <strong>规则 ${match.lineNumber}:</strong> "${match.searchText}" → [${match.fillValues.join(', ')}]
+                    <span class="badge bg-${match.matches > 0 ? 'success' : 'warning'}">
+                      ${match.matches} 个匹配
+                    </span>
+                  </div>
+                  ${match.details.length > 0 ? `
+                    <div class="mt-2">
+                      ${match.details.map(detail => `
+                        <small class="d-block text-muted">
+                          <i class="fas fa-arrow-right me-1"></i>
+                          第 ${detail.rowIndex} 行: "${detail.targetValue}" → ${detail.columnFillDetails.join(', ')}
+                        </small>
+                      `).join('')}
+                    </div>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      } else {
+        resultsHtml += `
+          <div class="error-message">
+            <h6><i class="fas fa-exclamation-circle me-2"></i>未找到任何匹配项</h6>
+            <p>所有规则都没有找到匹配的内容，请检查输入的匹配文本是否正确</p>
+          </div>
+        `;
+      }
+      
+      matchResults.innerHTML = resultsHtml;
+    }
+
+    // 执行新增行功能
+    function performAddRows(addRowInput) {
+      const addRowResults = document.getElementById('addRowResults');
+      const lines = addRowInput.split('\n').filter(line => line.trim());
+      
+      if (lines.length === 0) {
+        showAddRowError('没有找到有效的行数据');
+        return;
+      }
+      
+      const newRows = [];
+      const errors = [];
+      const successDetails = [];
+      
+      lines.forEach((line, lineIndex) => {
+        try {
+          const lineNumber = lineIndex + 1;
+          const pairs = line.trim().split(',').map(pair => pair.trim());
+          
+          if (pairs.length === 0) {
+            errors.push(`第 ${lineNumber} 行：没有找到有效的数据对`);
+            return;
+          }
+          
+          const newRow = { _rowId: currentData.length + newRows.length };
+          const columnDetails = [];
+          let validPairs = 0;
+          
+          // 初始化所有列为空值
+          headers.forEach(header => {
+            newRow[header] = '';
+          });
+          
+          pairs.forEach(pair => {
+            const colonIndex = pair.indexOf('：');
+            if (colonIndex === -1) {
+              // 尝试英文冒号
+              const englishColonIndex = pair.indexOf(':');
+              if (englishColonIndex === -1) {
+                errors.push(`第 ${lineNumber} 行：格式错误 "${pair}"，应为"列名：值"`);
+                return;
+              } else {
+                const columnName = pair.substring(0, englishColonIndex).trim();
+                const columnValue = pair.substring(englishColonIndex + 1).trim();
+                
+                if (headers.includes(columnName)) {
+                  newRow[columnName] = columnValue;
+                  columnDetails.push(`${columnName}: "${columnValue}"`);
+                  validPairs++;
+                } else {
+                  errors.push(`第 ${lineNumber} 行：列名 "${columnName}" 不存在`);
+                }
+              }
+            } else {
+              const columnName = pair.substring(0, colonIndex).trim();
+              const columnValue = pair.substring(colonIndex + 1).trim();
+              
+              if (headers.includes(columnName)) {
+                newRow[columnName] = columnValue;
+                columnDetails.push(`${columnName}: "${columnValue}"`);
+                validPairs++;
+              } else {
+                errors.push(`第 ${lineNumber} 行：列名 "${columnName}" 不存在`);
+              }
+            }
+          });
+          
+          if (validPairs > 0) {
+            newRows.push(newRow);
+            successDetails.push({
+              lineNumber: lineNumber,
+              columnDetails: columnDetails,
+              validPairs: validPairs
+            });
+          } else {
+            errors.push(`第 ${lineNumber} 行：没有找到有效的列数据`);
+          }
+          
+        } catch (error) {
+          errors.push(`第 ${lineIndex + 1} 行：解析错误 - ${error.message}`);
+        }
+      });
+      
+      // 添加新行到数据中
+      if (newRows.length > 0) {
+        currentData.push(...newRows);
+        displayTable();
+      }
+      
+      // 显示结果
+      let resultsHtml = '';
+      
+      if (errors.length > 0) {
+        resultsHtml += `
+          <div class="error-message mb-3">
+            <h6><i class="fas fa-exclamation-triangle me-2"></i>部分数据处理失败</h6>
+            ${errors.map(error => `<small class="d-block">${error}</small>`).join('')}
+          </div>
+        `;
+      }
+      
+      if (newRows.length > 0) {
+        resultsHtml += `
+          <div class="match-result">
+            <h6><i class="fas fa-check-circle me-2"></i>新增行成功！</h6>
+            <p>成功添加了 ${newRows.length} 行新数据，当前总行数：${currentData.length}</p>
+            <div class="mt-3">
+              <h6>添加详情：</h6>
+              ${successDetails.map(detail => `
+                <div class="rule-result success">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <strong>第 ${detail.lineNumber} 行:</strong>
+                    <span class="badge bg-success">${detail.validPairs} 个字段</span>
+                  </div>
+                  <div class="mt-2">
+                    <small class="d-block text-muted">
+                      <i class="fas fa-arrow-right me-1"></i>
+                      ${detail.columnDetails.join(', ')}
+                    </small>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      } else {
+        resultsHtml += `
+          <div class="error-message">
+            <h6><i class="fas fa-exclamation-circle me-2"></i>添加失败</h6>
+            <p>没有成功添加任何行数据，请检查输入格式</p>
+          </div>
+        `;
+      }
+      
+      addRowResults.innerHTML = resultsHtml;
+    }
+
+    // 显示新增行相关的错误信息
+    function showAddRowError(message) {
+      const addRowResults = document.getElementById('addRowResults');
+      addRowResults.innerHTML = `
+        <div class="error-message">
+          <h6><i class="fas fa-exclamation-circle me-2"></i>操作失败</h6>
+          <p>${message}</p>
+        </div>
+      `;
+    }
+
+    // 执行数据格式化
+    function performDataFormat(rawData, formatType, columnMapping, manualColumns) {
+      const formatResults = document.getElementById('formatResults');
+      const formattedDataContainer = document.getElementById('formattedDataContainer');
+      const formattedDataOutput = document.getElementById('formattedDataOutput');
+      
+      try {
+        let detectedFormat = formatType;
+        let parsedData = [];
+        
+        // 自动识别格式
+        if (formatType === 'auto') {
+          detectedFormat = detectDataFormat(rawData);
+        }
+        
+        // 根据格式解析数据
+        switch (detectedFormat) {
+          case 'keyvalue':
+            parsedData = parseKeyValueFormat(rawData);
+            break;
+          case 'table':
+            parsedData = parseTableFormat(rawData, columnMapping, manualColumns);
+            break;
+          case 'csv':
+            parsedData = parseCSVFormat(rawData, columnMapping, manualColumns);
+            break;
+          case 'json':
+            parsedData = parseJSONFormat(rawData);
+            break;
+          default:
+            throw new Error('无法识别数据格式');
+        }
+        
+        if (parsedData.length === 0) {
+          throw new Error('没有解析到有效的数据');
+        }
+        
+        // 生成格式化后的数据
+        const formattedLines = parsedData.map(item => {
+          const pairs = Object.entries(item).map(([key, value]) => `${key}：${value}`);
+          return pairs.join(',');
+        });
+        
+        const formattedText = formattedLines.join('\n');
+        
+        // 显示结果
+        formattedDataOutput.value = formattedText;
+        formattedDataContainer.style.display = 'block';
+        document.getElementById('copyFormattedBtn').disabled = false;
+        document.getElementById('fillToAddRowBtn').disabled = false;
+        
+        // 显示处理统计
+        formatResults.innerHTML = `
+          <div class="match-result">
+            <h6><i class="fas fa-check-circle me-2"></i>格式化完成！</h6>
+            <p>
+              <strong>检测格式：</strong>${getFormatName(detectedFormat)} | 
+              <strong>处理记录：</strong>${parsedData.length} 条 | 
+              <strong>字段数：</strong>${Object.keys(parsedData[0]).length} 个
+            </p>
+            <div class="mt-2">
+              <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                格式化后的数据已生成，可以直接复制到"新增行"功能中使用
+              </small>
+            </div>
+          </div>
+        `;
+        
+      } catch (error) {
+        showFormatError(`格式化失败：${error.message}`);
+        formattedDataContainer.style.display = 'none';
+        document.getElementById('copyFormattedBtn').disabled = true;
+        document.getElementById('fillToAddRowBtn').disabled = true;
+      }
+    }
+
+    // 自动检测数据格式
+    function detectDataFormat(rawData) {
+      const lines = rawData.trim().split('\n').filter(line => line.trim());
+      
+      if (lines.length === 0) return 'keyvalue';
+      
+      const firstLine = lines[0].trim();
+      
+      // 检测JSON格式
+      if (firstLine.startsWith('{') && firstLine.includes(':')) {
+        return 'json';
+      }
+      
+      // 检测键值对格式
+      if (firstLine.includes('：') || firstLine.includes(':')) {
+        const colonCount = (firstLine.match(/[：:]/g) || []).length;
+        const commaCount = (firstLine.match(/,/g) || []).length;
+        
+        // 如果冒号多于逗号，可能是键值对格式
+        if (colonCount > commaCount) {
+          return 'keyvalue';
+        }
+      }
+      
+      // 检测CSV格式
+      if (firstLine.includes(',')) {
+        return 'csv';
+      }
+      
+      // 检测表格格式（空格或制表符分隔）
+      if (firstLine.includes('\t') || firstLine.split(/\s+/).length > 1) {
+        return 'table';
+      }
+      
+      // 默认为键值对格式
+      return 'keyvalue';
+    }
+
+    // 解析键值对格式
+    function parseKeyValueFormat(rawData) {
+      const lines = rawData.trim().split('\n').filter(line => line.trim());
+      const results = [];
+      let currentItem = {};
+      
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        if (!trimmedLine) continue;
+        
+        // 检查是否包含冒号
+        let colonIndex = trimmedLine.indexOf('：');
+        if (colonIndex === -1) {
+          colonIndex = trimmedLine.indexOf(':');
+        }
+        
+        if (colonIndex !== -1) {
+          const key = trimmedLine.substring(0, colonIndex).trim();
+          const value = trimmedLine.substring(colonIndex + 1).trim();
+          
+          if (key && value) {
+            currentItem[key] = value;
+          }
+        } else {
+          // 如果当前行没有冒号，但已有数据，则开始新的记录
+          if (Object.keys(currentItem).length > 0) {
+            results.push(currentItem);
+            currentItem = {};
+          }
+        }
+      }
+      
+      // 添加最后一个记录
+      if (Object.keys(currentItem).length > 0) {
+        results.push(currentItem);
+      }
+      
+      return results;
+    }
+
+    // 解析表格格式
+    function parseTableFormat(rawData, columnMapping, manualColumns) {
+      const lines = rawData.trim().split('\n').filter(line => line.trim());
+      if (lines.length < 2) throw new Error('表格格式至少需要2行数据（表头和数据行）');
+      
+      let headers = [];
+      let dataStartIndex = 0;
+      
+      // 确定列名
+      if (columnMapping === 'manual' && manualColumns) {
+        headers = manualColumns.split(/\s+/).filter(col => col.trim());
+        dataStartIndex = 0;
+      } else {
+        // 使用第一行作为表头
+        headers = lines[0].split(/\s+/).filter(col => col.trim());
+        dataStartIndex = 1;
+      }
+      
+      const results = [];
+      
+      for (let i = dataStartIndex; i < lines.length; i++) {
+        const values = lines[i].split(/\s+/).filter(val => val.trim());
+        if (values.length === 0) continue;
+        
+        const item = {};
+        headers.forEach((header, index) => {
+          item[header] = values[index] || '';
+        });
+        
+        results.push(item);
+      }
+      
+      return results;
+    }
+
+    // 解析CSV格式
+    function parseCSVFormat(rawData, columnMapping, manualColumns) {
+      const lines = rawData.trim().split('\n').filter(line => line.trim());
+      if (lines.length === 0) throw new Error('CSV格式需要至少1行数据');
+      
+      let headers = [];
+      let dataStartIndex = 0;
+      
+      // 确定列名
+      if (columnMapping === 'manual' && manualColumns) {
+        headers = manualColumns.split(/\s+/).filter(col => col.trim());
+        dataStartIndex = 0;
+      } else {
+        // 使用第一行作为表头
+        headers = lines[0].split(',').map(col => col.trim());
+        dataStartIndex = 1;
+      }
+      
+      const results = [];
+      
+      for (let i = dataStartIndex; i < lines.length; i++) {
+        const values = lines[i].split(',').map(val => val.trim());
+        if (values.length === 0) continue;
+        
+        const item = {};
+        headers.forEach((header, index) => {
+          item[header] = values[index] || '';
+        });
+        
+        results.push(item);
+      }
+      
+      return results;
+    }
+
+    // 解析JSON格式
+    function parseJSONFormat(rawData) {
+      const lines = rawData.trim().split('\n').filter(line => line.trim());
+      const results = [];
+      
+      for (const line of lines) {
+        try {
+          const jsonObj = JSON.parse(line.trim());
+          if (typeof jsonObj === 'object' && jsonObj !== null) {
+            results.push(jsonObj);
+          }
+        } catch (e) {
+          // 忽略无法解析的行
+        }
+      }
+      
+      if (results.length === 0) {
+        throw new Error('没有找到有效的JSON数据');
+      }
+      
+      return results;
+    }
+
+    // 获取格式名称
+    function getFormatName(format) {
+      const formatNames = {
+        'keyvalue': '键值对格式',
+        'table': '表格格式',
+        'csv': 'CSV格式',
+        'json': 'JSON格式'
+      };
+      return formatNames[format] || '未知格式';
+    }
+
+    // 显示格式化相关的错误信息
+    function showFormatError(message) {
+      const formatResults = document.getElementById('formatResults');
+      formatResults.innerHTML = `
+        <div class="error-message">
+          <h6><i class="fas fa-exclamation-circle me-2"></i>格式化失败</h6>
+          <p>${message}</p>
+        </div>
+      `;
+    }
+
+    // 调整数据格式 - 将未匹配的行移到底部
+    function adjustDataFormat(fillColumns) {
+      const adjustResults = document.getElementById('adjustResults');
+      
+      // 分离匹配和未匹配的行
+      const matchedRows = [];
+      const unmatchedRows = [];
+      
+      currentData.forEach((row, index) => {
+        // 检查任一填充列是否有值
+        const hasAnyValue = fillColumns.some(column => {
+          const fillValue = row[column];
+          return fillValue && fillValue.toString().trim() !== '';
+        });
+        
+        if (hasAnyValue) {
+          matchedRows.push({ ...row, _originalIndex: index });
+        } else {
+          unmatchedRows.push({ ...row, _originalIndex: index });
+        }
+      });
+      
+      // 重新组织数据：匹配的在上，未匹配的在下
+      currentData = [...matchedRows, ...unmatchedRows];
+      
+      // 更新表格显示并添加视觉标识
+      displayTableWithStatus(matchedRows.length, unmatchedRows.length);
+      
+      // 显示调整结果
+      adjustResults.innerHTML = `
+        <div class="adjust-info">
+          <h6><i class="fas fa-check-circle me-2"></i>格式调整完成！</h6>
+          <p>数据已重新排序（基于以下列的匹配状态：${fillColumns.join('、')}）：</p>
+          <ul class="mb-0">
+            <li><span class="badge bg-success me-2">${matchedRows.length}</span>个已匹配的行移到顶部</li>
+            <li><span class="badge bg-warning me-2">${unmatchedRows.length}</span>个未匹配的行移到底部</li>
+          </ul>
+          <small class="text-muted mt-2 d-block">
+            <i class="fas fa-info-circle me-1"></i>
+            绿色背景表示已匹配，黄色背景表示未匹配
+          </small>
+        </div>
+      `;
+    }
+
+    // 恢复原始顺序
+    function resetToOriginalOrder() {
+      const adjustResults = document.getElementById('adjustResults');
+      
+      // 恢复原始数据
+      currentData = JSON.parse(JSON.stringify(originalData));
+      
+      // 重新显示表格
+      displayTable();
+      
+      // 显示恢复结果
+      adjustResults.innerHTML = `
+        <div class="adjust-info">
+          <h6><i class="fas fa-undo me-2"></i>已恢复原始顺序</h6>
+          <p>数据已恢复到文件原始排序状态</p>
+        </div>
+      `;
+    }
+
+    // 带状态显示的表格渲染
+    function displayTableWithStatus(matchedCount, unmatchedCount) {
+      const tableHead = document.getElementById('tableHead');
+      const tableBody = document.getElementById('tableBody');
+      
+      // 创建表头
+      tableHead.innerHTML = `
+        <tr>
+          ${headers.map(header => `<th>${header}</th>`).join('')}
+        </tr>
+      `;
+      
+      // 创建表格内容，添加视觉标识
+      tableBody.innerHTML = currentData.map((row, index) => {
+        const isMatched = index < matchedCount;
+        const rowClass = isMatched ? 'matched-row' : 'unmatched-row';
+        
+        return `
+          <tr class="${rowClass}">
+            ${headers.map(header => `<td>${formatCellValue(row[header])}</td>`).join('')}
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // 显示调整相关的错误信息
+    function showAdjustError(message) {
+      const adjustResults = document.getElementById('adjustResults');
+      adjustResults.innerHTML = `
+        <div class="error-message">
+          <h6><i class="fas fa-exclamation-circle me-2"></i>操作失败</h6>
+          <p>${message}</p>
+        </div>
+      `;
+    }
+
+    // 执行序号重排
+    function executeReorder(numberColumn, startNumber, stepNumber) {
+      const adjustResults = document.getElementById('adjustResults');
+      
+      // 检查选择的列是否存在
+      if (!headers.includes(numberColumn)) {
+        showAdjustError('选择的序号列不存在');
+        return;
+      }
+      
+      // 记录重排前的状态
+      const beforeValues = currentData.map(row => row[numberColumn]);
+      
+      // 执行序号重排
+      currentData.forEach((row, index) => {
+        row[numberColumn] = startNumber + (index * stepNumber);
+      });
+      
+      // 更新表格显示
+      displayTable();
+      
+      // 关闭配置面板
+      document.getElementById('reorderConfig').style.display = 'none';
+      
+      // 显示重排结果
+      const totalRows = currentData.length;
+      const endNumber = startNumber + ((totalRows - 1) * stepNumber);
+      
+      adjustResults.innerHTML = `
+        <div class="adjust-info">
+          <h6><i class="fas fa-list-ol me-2"></i>序号重排完成！</h6>
+          <p>已对"${numberColumn}"列进行序号重排：</p>
+          <ul class="mb-0">
+            <li><strong>处理行数：</strong>${totalRows} 行</li>
+            <li><strong>序号范围：</strong>${startNumber} ~ ${endNumber}</li>
+            <li><strong>步长：</strong>${stepNumber}</li>
+          </ul>
+          <div class="mt-2">
+            <small class="text-muted">
+              <i class="fas fa-info-circle me-1"></i>
+              序号已按当前行顺序重新生成连续数字
+            </small>
+          </div>
+        </div>
+      `;
+    }
+
+    // 移除单个匹配相关函数，只保留批量匹配
+
+    // 匹配算法（支持左右三个字符的模糊匹配）
+    function isMatch(cellValue, searchText) {
+      if (!cellValue || !searchText) return false;
+      
+      const cell = cellValue.toLowerCase();
+      const search = searchText.toLowerCase();
+      
+      // 精确匹配
+      if (cell.includes(search)) return true;
+      
+      // 左右三个字符匹配
+      for (let i = 0; i <= cell.length - search.length; i++) {
+        const substring = cell.substring(i, i + search.length);
+        
+        // 计算相似度
+        let matches = 0;
+        for (let j = 0; j < Math.min(substring.length, search.length); j++) {
+          if (substring[j] === search[j]) matches++;
+        }
+
+        // 如果相似度超过 100%，认为匹配
+        if (matches / search.length >= 1) return true;
+      }
+      
+      return false;
+    }
+
+    // 导出文件
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      try {
+        const wb = XLSX.utils.book_new();
+        const wsData = [headers];
+        
+        currentData.forEach(row => {
+          const rowData = headers.map(header => {
+            const value = row[header];
+            // 确保导出的数据格式正确
+            return formatCellValue(value);
+          });
+          wsData.push(rowData);
+        });
+        
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+        
+        // 生成导出文件名：原文件名-YYYYMMDDHHMM.xlsx
+        const now = new Date();
+        const dateTimeStr = now.getFullYear().toString() +
+                           (now.getMonth() + 1).toString().padStart(2, '0') +
+                           now.getDate().toString().padStart(2, '0') +
+                           now.getHours().toString().padStart(2, '0') +
+                           now.getMinutes().toString().padStart(2, '0');
+        
+        const baseFileName = importedFileName || '导出文件';
+        const fileName = `${baseFileName}-${dateTimeStr}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        
+        showSuccess('文件导出成功！');
+      } catch (error) {
+        showError('导出失败：' + error.message);
+      }
+    });
+
+    // 显示相关卡片
+    function showCards() {
+      document.getElementById('tableCard').style.display = 'block';
+      document.getElementById('operationsCard').style.display = 'block';
+    }
+
+    // 工具函数
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function showError(message) {
+      const matchResults = document.getElementById('matchResults');
+      matchResults.innerHTML = `
+        <div class="error-message">
+          <h6><i class="fas fa-exclamation-circle me-2"></i>错误</h6>
+          <p>${message}</p>
+        </div>
+      `;
+    }
+
+    function showSuccess(message) {
+      const matchResults = document.getElementById('matchResults');
+      matchResults.innerHTML = `
+        <div class="match-result">
+          <h6><i class="fas fa-check-circle me-2"></i>成功</h6>
+          <p>${message}</p>
+        </div>
+      `;
+    }
+
+    // 移除实时搜索预览功能，只保留批量匹配模式
+
+    // 高亮匹配项
+    function highlightMatches(targetColumn, searchText) {
+      const tableBody = document.getElementById('tableBody');
+      const targetColumnIndex = headers.indexOf(targetColumn);
+      
+      if (targetColumnIndex === -1) return;
+      
+      const rows = tableBody.querySelectorAll('tr');
+      rows.forEach((row, index) => {
+        const cell = row.cells[targetColumnIndex];
+        const cellValue = currentData[index][targetColumn] || '';
+        
+        if (isMatch(cellValue, searchText)) {
+          cell.classList.add('highlight');
+        } else {
+          cell.classList.remove('highlight');
+        }
+      });
+    }
+
+    // 移除高亮
+    function removeHighlights() {
+      const highlightedCells = document.querySelectorAll('.highlight');
+      highlightedCells.forEach(cell => cell.classList.remove('highlight'));
+    }
+
+    // 标签页切换事件监听
+    document.addEventListener('DOMContentLoaded', function() {
+      const tabButtons = document.querySelectorAll('[data-bs-toggle="tab"]');
+      tabButtons.forEach(button => {
+        button.addEventListener('shown.bs.tab', function(event) {
+          // 当切换标签页时，清空对应的结果显示
+          if (event.target.id === 'add-row-tab') {
+            // 清空其他标签页的结果
+            document.getElementById('matchResults').innerHTML = '';
+            document.getElementById('formatResults').innerHTML = '';
+            document.getElementById('adjustResults').innerHTML = '';
+          } else if (event.target.id === 'smart-match-tab') {
+            // 清空其他标签页的结果
+            document.getElementById('addRowResults').innerHTML = '';
+            document.getElementById('formatResults').innerHTML = '';
+            document.getElementById('adjustResults').innerHTML = '';
+          } else if (event.target.id === 'format-data-tab') {
+            // 清空其他标签页的结果
+            document.getElementById('addRowResults').innerHTML = '';
+            document.getElementById('matchResults').innerHTML = '';
+            document.getElementById('adjustResults').innerHTML = '';
+          } else if (event.target.id === 'data-adjust-tab') {
+            // 清空其他标签页的结果
+            document.getElementById('addRowResults').innerHTML = '';
+            document.getElementById('matchResults').innerHTML = '';
+            document.getElementById('formatResults').innerHTML = '';
+          }
+        });
+      });
+    });
+
+    // ========== 图片转PDF功能 ==========
+    let selectedImages = [];
+    const { jsPDF } = window.jspdf;
+
+    // 图片上传区域事件
+    const imageUploadArea = document.getElementById('imageUploadArea');
+    const imageFileInput = document.getElementById('imageFileInput');
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+    const imagePreviewList = document.getElementById('imagePreviewList');
+    const imageCount = document.getElementById('imageCount');
+    const pdfSettings = document.getElementById('pdfSettings');
+    const pdfActions = document.getElementById('pdfActions');
+
+    // 点击上传区域
+    imageUploadArea.addEventListener('click', () => {
+      imageFileInput.click();
+    });
+
+    // 拖拽上传
+    imageUploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      imageUploadArea.classList.add('dragover');
+    });
+
+    imageUploadArea.addEventListener('dragleave', () => {
+      imageUploadArea.classList.remove('dragover');
+    });
+
+    imageUploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      imageUploadArea.classList.remove('dragover');
+      const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+      handleImageFiles(files);
+    });
+
+    // 文件选择事件
+    imageFileInput.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files);
+      handleImageFiles(files);
+    });
+
+    // 处理图片文件
+    function handleImageFiles(files) {
+      if (files.length === 0) return;
+
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const imageData = {
+            name: file.name,
+            src: e.target.result,
+            file: file,
+            size: file.size
+          };
+          selectedImages.push(imageData);
+          updateImagePreview();
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // 更新图片预览
+    function updateImagePreview() {
+      imageCount.textContent = `${selectedImages.length} 张图片`;
+      
+      if (selectedImages.length > 0) {
+        imagePreviewContainer.style.display = 'block';
+        pdfSettings.style.display = 'block';
+        pdfActions.style.display = 'flex';
+        
+        imagePreviewList.innerHTML = '';
+        selectedImages.forEach((image, index) => {
+          const col = document.createElement('div');
+          col.className = 'col-md-3';
+          col.innerHTML = `
+            <div class="card">
+              <img src="${image.src}" class="card-img-top" style="height: 150px; object-fit: cover;">
+              <div class="card-body p-2">
+                <h6 class="card-title small">${image.name}</h6>
+                <p class="card-text small text-muted">${formatFileSize(image.size)}</p>
+                <button class="btn btn-danger btn-sm w-100" onclick="removeImage(${index})">
+                  <i class="fas fa-trash me-1"></i>删除
+                </button>
+              </div>
+            </div>
+          `;
+          imagePreviewList.appendChild(col);
+        });
+      } else {
+        imagePreviewContainer.style.display = 'none';
+        pdfSettings.style.display = 'none';
+        pdfActions.style.display = 'none';
+      }
+    }
+
+    // 删除图片
+    function removeImage(index) {
+      selectedImages.splice(index, 1);
+      updateImagePreview();
+    }
+
+    // 清空所有图片
+    document.getElementById('clearImagesBtn').addEventListener('click', () => {
+      selectedImages = [];
+      imageFileInput.value = '';
+      updateImagePreview();
+      document.getElementById('pdfResults').innerHTML = '';
+    });
+
+    // 生成PDF
+    document.getElementById('generatePdfBtn').addEventListener('click', async () => {
+      if (selectedImages.length === 0) {
+        showAlert('请先选择图片文件', 'warning');
+        return;
+      }
+
+      const generateBtn = document.getElementById('generatePdfBtn');
+      const conversionProgress = document.getElementById('conversionProgress');
+      const progressBar = document.getElementById('progressBar');
+      const progressText = document.getElementById('progressText');
+
+      try {
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>生成中...';
+        conversionProgress.style.display = 'block';
+
+        // 获取设置
+        const orientation = document.getElementById('pageOrientation').value;
+        const pageSize = document.getElementById('pageSize').value.toUpperCase();
+        const layout = document.getElementById('imageLayout').value;
+        const fileName = document.getElementById('pdfFileName').value || '图片合集';
+
+        // 创建PDF
+        const pdf = new jsPDF({
+          orientation: orientation,
+          unit: 'mm',
+          format: pageSize
+        });
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 10;
+        const availableWidth = pageWidth - (margin * 2);
+        const availableHeight = pageHeight - (margin * 2);
+
+        for (let i = 0; i < selectedImages.length; i++) {
+          const image = selectedImages[i];
+          
+          // 更新进度
+          const progress = Math.round(((i + 1) / selectedImages.length) * 100);
+          progressBar.style.width = progress + '%';
+          progressText.textContent = `${progress}% (${i + 1}/${selectedImages.length})`;
+
+          if (i > 0) {
+            pdf.addPage();
+          }
+
+          try {
+            // 创建临时图片元素来获取尺寸
+            const img = new Image();
+            await new Promise((resolve, reject) => {
+              img.onload = resolve;
+              img.onerror = reject;
+              img.src = image.src;
+            });
+
+            let imgWidth, imgHeight;
+            const imgRatio = img.width / img.height;
+            const pageRatio = availableWidth / availableHeight;
+
+            if (layout === 'fit-to-page') {
+              if (imgRatio > pageRatio) {
+                imgWidth = availableWidth;
+                imgHeight = availableWidth / imgRatio;
+              } else {
+                imgHeight = availableHeight;
+                imgWidth = availableHeight * imgRatio;
+              }
+            } else {
+              // 每页一张图片，居中显示
+              if (imgRatio > pageRatio) {
+                imgWidth = availableWidth;
+                imgHeight = availableWidth / imgRatio;
+              } else {
+                imgHeight = availableHeight;
+                imgWidth = availableHeight * imgRatio;
+              }
+            }
+
+            const x = (pageWidth - imgWidth) / 2;
+            const y = (pageHeight - imgHeight) / 2;
+
+            pdf.addImage(image.src, 'JPEG', x, y, imgWidth, imgHeight);
+            
+          } catch (error) {
+            console.error('处理图片时出错:', image.name, error);
+          }
+
+          // 添加小延迟以避免浏览器冻结
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        // 保存PDF
+        pdf.save(`${fileName}.pdf`);
+
+        // 显示成功消息
+        document.getElementById('pdfResults').innerHTML = `
+          <div class="alert alert-success">
+            <i class="fas fa-check-circle me-2"></i>
+            PDF文件已成功生成并下载！
+            <br><small>文件名: ${fileName}.pdf | 总页数: ${selectedImages.length} 页</small>
+          </div>
+        `;
+
+      } catch (error) {
+        console.error('生成PDF时出错:', error);
+        document.getElementById('pdfResults').innerHTML = `
+          <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            生成PDF时出错: ${error.message}
+          </div>
+        `;
+      } finally {
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<i class="fas fa-file-pdf me-2"></i>生成PDF';
+        conversionProgress.style.display = 'none';
+      }
+    });
+
+    // 工具函数：显示提示消息
+    function showAlert(message, type = 'info') {
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+      alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+      document.getElementById('pdfResults').appendChild(alertDiv);
+      
+      // 3秒后自动消失
+      setTimeout(() => {
+        if (alertDiv.parentNode) {
+          alertDiv.remove();
+        }
+      }, 3000);
+    }
+
+    // 格式化文件大小（已存在，这里是为了图片功能使用）
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+  </script>
+</body>
+</html>

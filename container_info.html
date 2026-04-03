@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>柜号确认单</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: "Microsoft YaHei", "SimSun", Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; }
+
+    h1 {
+      text-align: center; color: white; margin-bottom: 24px;
+      font-size: 28px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .back-link {
+      display: inline-block; margin-bottom: 16px; color: white;
+      text-decoration: none; font-size: 15px; opacity: 0.85;
+    }
+    .back-link:hover { opacity: 1; }
+
+    .section {
+      background: white; padding: 28px; border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2); margin-bottom: 24px;
+    }
+
+    .section h2 {
+      color: #333; margin-bottom: 20px; font-size: 18px;
+      border-bottom: 2px solid #667eea; padding-bottom: 8px;
+    }
+
+    /* 表单 */
+    .form-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px;
+    }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group label {
+      font-size: 13px; color: #666; margin-bottom: 4px; font-weight: bold;
+    }
+    .form-group input {
+      padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px;
+      font-size: 14px; transition: border-color 0.2s;
+    }
+    .form-group input:focus { outline: none; border-color: #667eea; }
+    .form-group.default-field label::after {
+      content: " (默认)"; color: #999; font-weight: normal; font-size: 11px;
+    }
+
+    /* 智能识别区 */
+    .smart-input-area { margin-bottom: 20px; }
+    .smart-input-area textarea {
+      width: 100%; height: 100px; padding: 12px; border: 2px dashed #667eea;
+      border-radius: 8px; font-size: 14px; resize: vertical;
+      font-family: inherit;
+    }
+    .smart-input-area textarea:focus { outline: none; border-style: solid; }
+
+    /* 按钮 */
+    .btn {
+      padding: 10px 24px; border: none; border-radius: 8px; font-size: 14px;
+      cursor: pointer; font-weight: bold; transition: all 0.2s;
+    }
+    .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
+    .btn-success { background: linear-gradient(135deg, #56ab2f, #a8e063); color: white; }
+    .btn-success:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(86,171,47,0.4); }
+    .btn-warning { background: linear-gradient(135deg, #f093fb, #f5576c); color: white; }
+    .btn-warning:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(245,87,108,0.4); }
+    .btn-outline {
+      background: white; color: #667eea; border: 2px solid #667eea;
+    }
+    .btn-outline:hover { background: #667eea; color: white; }
+    .btn-sm { padding: 6px 14px; font-size: 12px; }
+
+    .btn-group { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+
+    /* OCR 上传区 */
+    .ocr-upload-area {
+      border: 2px dashed #ccc; border-radius: 8px; padding: 24px;
+      text-align: center; cursor: pointer; transition: all 0.3s;
+      background: #fafafa; margin-bottom: 12px;
+    }
+    .ocr-upload-area:hover { border-color: #667eea; background: #f0f4ff; }
+    .ocr-upload-area .icon { font-size: 36px; margin-bottom: 8px; }
+    .ocr-upload-area p { color: #888; font-size: 13px; }
+
+    /* 附件图片区 */
+    .attachment-area {
+      border: 2px dashed #56ab2f; border-radius: 8px; padding: 24px;
+      text-align: center; cursor: pointer; transition: all 0.3s;
+      background: #f9fff4; margin-bottom: 12px;
+    }
+    .attachment-area:hover { border-color: #2d8a0e; background: #eaffdb; }
+    .attachment-area .icon { font-size: 36px; margin-bottom: 8px; }
+    .attachment-area p { color: #888; font-size: 13px; }
+
+    .thumb-list {
+      display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px;
+    }
+    .thumb-item {
+      position: relative; width: 120px; height: 120px; border-radius: 8px;
+      overflow: hidden; border: 2px solid #eee;
+    }
+    .thumb-item img { width: 100%; height: 100%; object-fit: cover; }
+    .thumb-item .del-btn {
+      position: absolute; top: 4px; right: 4px; width: 22px; height: 22px;
+      background: rgba(255,0,0,0.7); color: white; border: none;
+      border-radius: 50%; cursor: pointer; font-size: 12px; line-height: 22px;
+      text-align: center;
+    }
+    .thumb-item .del-btn:hover { background: red; }
+
+    /* Loading */
+    .loading-overlay {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); z-index: 9999;
+      justify-content: center; align-items: center;
+    }
+    .loading-overlay.show { display: flex; }
+    .loading-box {
+      background: white; padding: 32px 48px; border-radius: 12px;
+      text-align: center;
+    }
+    .loading-box .spinner {
+      width: 40px; height: 40px; border: 4px solid #eee;
+      border-top-color: #667eea; border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* 预览区 */
+    .preview-container {
+      display: none; overflow-x: auto; background: #f5f5f5;
+      border-radius: 8px; padding: 20px;
+    }
+    .preview-container.show { display: block; }
+    .preview-layout {
+      display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;
+    }
+
+    /* 柜号确认单表格预览 */
+    .confirm-table {
+      border-collapse: collapse; font-size: 14px; min-width: 520px;
+    }
+    .confirm-table td {
+      border: 1px solid #333; padding: 6px 12px; white-space: nowrap;
+    }
+    .confirm-table .title-row td {
+      border: none; text-align: center; font-size: 22px;
+      font-weight: bold; letter-spacing: 12px; padding: 12px;
+    }
+    .confirm-table .header-row td { border-left: none; border-right: none; }
+    .confirm-table .empty-row td { border: none; height: 6px; }
+    .confirm-table .label-cell {
+      font-weight: bold; text-align: center; background: #fafafa;
+    }
+    .confirm-table .value-cell { min-width: 120px; }
+    .confirm-table .highlight { background: #ffff00; font-weight: bold; }
+
+    .preview-images {
+      display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap;
+    }
+    .preview-images img {
+      max-height: 380px; max-width: 300px; width: auto; height: auto;
+      object-fit: contain; border-radius: 4px; border: 1px solid #ddd;
+    }
+
+    /* 提示 */
+    .tips {
+      background: #fff3e0; border-left: 4px solid #ff9800;
+      padding: 12px 16px; border-radius: 0 8px 8px 0;
+      margin-bottom: 16px; font-size: 13px; color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="index.html" class="back-link">&larr; 返回首页</a>
+    <h1>&#128230; 柜号确认单</h1>
+
+    <!-- 智能识别输入 -->
+    <div class="section">
+      <h2>&#128270; 智能识别输入</h2>
+      <div class="tips">
+        <strong>&#128161; 使用说明：</strong>粘贴柜号确认单文本，系统自动识别各字段。支持多种格式（键值对、自由文本等），也可上传图片 OCR 识别。
+      </div>
+      <div class="smart-input-area">
+        <textarea id="smartInput" placeholder="在此粘贴文本，如：&#10;订单号：PO:0117250717&#10;柜号：SEKU6536421&#10;车牌：粤BEX462 司机：李宗霖 电话：19842157808&#10;&#10;支持任意格式，系统会智能识别字段..."></textarea>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="smartRecognize()">&#128300; 识别并填充</button>
+        <button class="btn btn-outline" onclick="document.getElementById('ocrInput').click()">&#128247; 上传图片 OCR 识别</button>
+        <input type="file" id="ocrInput" accept="image/*" multiple style="display:none" onchange="handleOCR(this.files)">
+        <button class="btn btn-outline btn-sm" onclick="clearAll()">&#128465; 清空所有</button>
+      </div>
+    </div>
+
+    <!-- 信息表单 -->
+    <div class="section">
+      <h2>&#128221; 柜号信息</h2>
+
+      <div style="margin-bottom:16px;">
+        <strong style="color:#999;font-size:13px;">-- 默认值字段（可修改）--</strong>
+      </div>
+      <div class="form-grid" style="margin-bottom:20px;">
+        <div class="form-group default-field">
+          <label>TO (收货方)</label>
+          <input type="text" id="f_to" value="光普">
+        </div>
+        <div class="form-group default-field">
+          <label>FROM (物流公司)</label>
+          <input type="text" id="f_from" value="伟航物流">
+        </div>
+        <div class="form-group default-field">
+          <label>装货地点</label>
+          <input type="text" id="f_loadPlace" value="清溪">
+        </div>
+        <div class="form-group default-field">
+          <label>提柜地点</label>
+          <input type="text" id="f_pickupPlace" value="SCT">
+        </div>
+        <div class="form-group default-field">
+          <label>还柜地点</label>
+          <input type="text" id="f_returnPlace" value="SCT">
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <strong style="color:#999;font-size:13px;">-- 主要字段 --</strong>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>订单号</label>
+          <input type="text" id="f_po" placeholder="如 PO:0117250717">
+        </div>
+        <div class="form-group">
+          <label>做柜时间</label>
+          <input type="text" id="f_date" placeholder="如 03/31/14:00">
+        </div>
+        <div class="form-group">
+          <label>工厂名称</label>
+          <input type="text" id="f_factory" placeholder="工厂名称">
+        </div>
+        <div class="form-group">
+          <label>订舱号</label>
+          <input type="text" id="f_booking" placeholder="如 TN2613N2060">
+        </div>
+        <div class="form-group">
+          <label>柜型</label>
+          <input type="text" id="f_containerType" placeholder="如 40HQ">
+        </div>
+        <div class="form-group">
+          <label>柜号</label>
+          <input type="text" id="f_containerNo" placeholder="如 SEKU6536421">
+        </div>
+        <div class="form-group">
+          <label>封号</label>
+          <input type="text" id="f_sealNo" placeholder="如 KWS913986">
+        </div>
+        <div class="form-group">
+          <label>柜重 (kg)</label>
+          <input type="text" id="f_weight" placeholder="如 3700">
+        </div>
+        <div class="form-group">
+          <label>车牌</label>
+          <input type="text" id="f_plate" placeholder="如 粤BEX462">
+        </div>
+        <div class="form-group">
+          <label>司机</label>
+          <input type="text" id="f_driver" placeholder="司机姓名">
+        </div>
+        <div class="form-group">
+          <label>司机身份证号</label>
+          <input type="text" id="f_driverId" placeholder="18位身份证号">
+        </div>
+        <div class="form-group">
+          <label>司机手机号</label>
+          <input type="text" id="f_driverPhone" placeholder="11位手机号">
+        </div>
+      </div>
+    </div>
+
+    <!-- 附件图片上传 -->
+    <div class="section">
+      <h2>&#128247; 附件图片（嵌入Excel）</h2>
+      <div class="tips">上传柜门照、封条照等图片，将嵌入到导出的 Excel 文件右侧。</div>
+      <div class="attachment-area" onclick="document.getElementById('attachInput').click()">
+        <div class="icon">&#128444;</div>
+        <p><strong>点击上传附件图片</strong><br>支持多张，JPG/PNG 格式</p>
+      </div>
+      <input type="file" id="attachInput" accept="image/*" multiple style="display:none" onchange="handleAttachments(this.files)">
+      <div class="thumb-list" id="attachThumbs"></div>
+    </div>
+
+    <!-- 预览 + 导出 -->
+    <div class="section">
+      <h2>&#128065; 预览与导出</h2>
+      <div class="btn-group" style="margin-bottom:16px;">
+        <button class="btn btn-primary" onclick="showPreview()">&#128065; 预览</button>
+        <button class="btn btn-success" onclick="exportExcel()">&#128229; 导出 Excel</button>
+      </div>
+      <div class="preview-container" id="previewContainer">
+        <div class="preview-layout" id="previewLayout"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-box">
+      <div class="spinner"></div>
+      <div id="loadingText">OCR 识别中...</div>
+    </div>
+  </div>
+
+  <!-- Tesseract.js -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <!-- ExcelJS -->
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+  <!-- FileSaver -->
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+
+  <script>
+    // ===== 附件图片数据 =====
+    const attachmentImages = []; // { file, dataUrl }
+
+    // ===== 字段别名映射 =====
+    const keywordMap = [
+      { field: 'po',            keywords: ['订单号', '订单编号', '订单', '单号', 'PO'] },
+      { field: 'date',          keywords: ['做柜时间', '做柜日期', '装柜时间', '日期', 'DATE'] },
+      { field: 'factory',       keywords: ['工厂名称', '工厂', '收货方', '客户'] },
+      { field: 'booking',       keywords: ['订仓号', '订舱号', '仓号', 'booking', 'SO'] },
+      { field: 'containerType', keywords: ['柜型号', '柜型', '箱型'] },
+      { field: 'containerNo',   keywords: ['柜号码', '柜号', '箱号', 'container'] },
+      { field: 'sealNo',        keywords: ['封条号', '封条', '封号', 'seal'] },
+      { field: 'weight',        keywords: ['柜重', '皮重', 'tare', '自重'] },
+      { field: 'plate',         keywords: ['车牌号码', '车牌号', '车牌', '车号'] },
+      { field: 'driver',        keywords: ['司机姓名', '驾驶员', '司机', '姓名'] },
+      { field: 'driverId',      keywords: ['身份证号码', '身份证号', '身份证', '证件号码', '证件号'] },
+      { field: 'driverPhone',   keywords: ['联系方式', '手机号码', '手机号', '联系电话', '电话号码', '司机手机号', '手机', '电话'] },
+      // 默认值字段也支持识别
+      { field: 'to',            keywords: ['TO'] },
+      { field: 'from',          keywords: ['FROM'] },
+      { field: 'loadPlace',     keywords: ['装货地点', '装货'] },
+      { field: 'pickupPlace',   keywords: ['提柜地点', '提柜'] },
+      { field: 'returnPlace',   keywords: ['还柜地点', '还柜'] },
+    ];
+
+    /**
+     * 智能提取字段
+     */
+    function smartExtract(text) {
+      const record = {};
+
+      // 策略1：关键词切分法
+      const allKeywords = keywordMap.flatMap(k => k.keywords);
+      allKeywords.sort((a, b) => b.length - a.length);
+      const kwPattern = new RegExp(
+        '(?:[他她其的]*)(?:' + allKeywords.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')' +
+        '[是为]?\\s*[：:./]?\\s*',
+        'gi'
+      );
+
+      const matches = [];
+      let m;
+      while ((m = kwPattern.exec(text)) !== null) {
+        const matchedText = m[0];
+        let field = '';
+        for (const { field: f, keywords } of keywordMap) {
+          if (keywords.some(kw => matchedText.toLowerCase().includes(kw.toLowerCase()))) {
+            field = f;
+            break;
+          }
+        }
+        if (field) {
+          matches.push({ field, start: m.index, end: m.index + m[0].length });
+        }
+      }
+
+      for (let i = 0; i < matches.length; i++) {
+        const valueStart = matches[i].end;
+        const valueEnd = (i + 1 < matches.length) ? matches[i + 1].start : text.length;
+        const value = text.substring(valueStart, valueEnd).replace(/[,，;；。、\s\n]+$/, '').trim();
+        if (value && !record[matches[i].field]) {
+          record[matches[i].field] = value;
+        }
+      }
+
+      // 策略2：数据特征兜底
+      // 柜号：4字母+7数字
+      if (!record.containerNo) {
+        const cnMatch = text.match(/([A-Z]{4}\d{7})/i);
+        if (cnMatch) record.containerNo = cnMatch[1].toUpperCase();
+      }
+
+      // 车牌
+      if (!record.plate) {
+        const plateMatch = text.match(/([京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤川青藏琼宁][A-Z][A-Z0-9]{5})/);
+        if (plateMatch) record.plate = plateMatch[1];
+      }
+
+      // 身份证
+      if (!record.driverId) {
+        const idMatch = text.match(/(\d{17}[\dXx]|\d{15})/);
+        if (idMatch) record.driverId = idMatch[1].toUpperCase();
+      }
+
+      // 手机号（排除身份证中的子串）
+      if (!record.driverPhone) {
+        const phonePattern = /1[3-9]\d{9}/g;
+        let phoneMatch;
+        while ((phoneMatch = phonePattern.exec(text)) !== null) {
+          if (!record.driverId || !record.driverId.includes(phoneMatch[0])) {
+            record.driverPhone = phoneMatch[0];
+            break;
+          }
+        }
+      }
+
+      // PO号特征：PO:或PO开头+数字
+      if (!record.po) {
+        const poMatch = text.match(/PO[:\s]*(\d[\d\-]+)/i);
+        if (poMatch) record.po = 'PO:' + poMatch[1];
+      }
+
+      // 柜型特征
+      if (!record.containerType) {
+        const typeMatch = text.match(/(20GP|40HQ|40GP|40HC|20HC|45HQ)/i);
+        if (typeMatch) record.containerType = typeMatch[1].toUpperCase();
+      }
+
+      // 封号特征：字母+数字（排除已匹配的柜号）
+      if (!record.sealNo) {
+        const sealPattern = /\b([A-Z]{2,4}\d{5,8})\b/gi;
+        let sealMatch;
+        while ((sealMatch = sealPattern.exec(text)) !== null) {
+          const val = sealMatch[1].toUpperCase();
+          if (val !== (record.containerNo || '').toUpperCase()) {
+            record.sealNo = val;
+            break;
+          }
+        }
+      }
+
+      // 柜重：独立的3-5位数字（排除手机号、身份证、柜号中的数字）
+      if (!record.weight) {
+        const weightMatch = text.match(/(?:柜重|皮重|tare|自重)[：:\s]*(\d{3,5})/i);
+        if (weightMatch) record.weight = weightMatch[1];
+      }
+
+      // 司机姓名清理
+      if (record.driver) {
+        const nameClean = record.driver.match(/^([\u4e00-\u9fa5]{2,4})/);
+        record.driver = nameClean ? nameClean[1] : record.driver;
+      }
+
+      // 司机/电话 合并字段处理
+      if (record.driver && record.driver.includes('/')) {
+        const parts = record.driver.split('/');
+        const namePart = parts[0].match(/([\u4e00-\u9fa5]{2,4})/);
+        if (namePart) record.driver = namePart[1];
+        if (!record.driverPhone && parts[1]) {
+          const phonePart = parts[1].match(/1[3-9]\d{9}/);
+          if (phonePart) record.driverPhone = phonePart[0];
+        }
+      }
+
+      return record;
+    }
+
+    /**
+     * 将识别结果填充到表单
+     */
+    function fillForm(record) {
+      const fieldMap = {
+        po: 'f_po', date: 'f_date', factory: 'f_factory', booking: 'f_booking',
+        containerType: 'f_containerType', containerNo: 'f_containerNo',
+        sealNo: 'f_sealNo', weight: 'f_weight', plate: 'f_plate',
+        driver: 'f_driver', driverId: 'f_driverId', driverPhone: 'f_driverPhone',
+        to: 'f_to', from: 'f_from', loadPlace: 'f_loadPlace',
+        pickupPlace: 'f_pickupPlace', returnPlace: 'f_returnPlace',
+      };
+      for (const [key, inputId] of Object.entries(fieldMap)) {
+        if (record[key]) {
+          document.getElementById(inputId).value = record[key];
+        }
+      }
+    }
+
+    /**
+     * 获取表单数据
+     */
+    function getFormData() {
+      return {
+        to: document.getElementById('f_to').value.trim(),
+        from: document.getElementById('f_from').value.trim(),
+        loadPlace: document.getElementById('f_loadPlace').value.trim(),
+        pickupPlace: document.getElementById('f_pickupPlace').value.trim(),
+        returnPlace: document.getElementById('f_returnPlace').value.trim(),
+        po: document.getElementById('f_po').value.trim(),
+        date: document.getElementById('f_date').value.trim(),
+        factory: document.getElementById('f_factory').value.trim(),
+        booking: document.getElementById('f_booking').value.trim(),
+        containerType: document.getElementById('f_containerType').value.trim(),
+        containerNo: document.getElementById('f_containerNo').value.trim(),
+        sealNo: document.getElementById('f_sealNo').value.trim(),
+        weight: document.getElementById('f_weight').value.trim(),
+        plate: document.getElementById('f_plate').value.trim(),
+        driver: document.getElementById('f_driver').value.trim(),
+        driverId: document.getElementById('f_driverId').value.trim(),
+        driverPhone: document.getElementById('f_driverPhone').value.trim(),
+      };
+    }
+
+    /**
+     * 智能识别按钮
+     */
+    function smartRecognize() {
+      const text = document.getElementById('smartInput').value.trim();
+      if (!text) { alert('请先粘贴文本到输入框！'); return; }
+      const record = smartExtract(text);
+      if (Object.keys(record).length === 0) {
+        alert('未能识别到有效信息，请检查文本内容。');
+        return;
+      }
+      fillForm(record);
+      alert('识别完成！已自动填充 ' + Object.keys(record).length + ' 个字段，请检查并修改。');
+    }
+
+    /**
+     * OCR 图片识别
+     */
+    async function handleOCR(files) {
+      if (!files || files.length === 0) return;
+      const overlay = document.getElementById('loadingOverlay');
+      const loadingText = document.getElementById('loadingText');
+      overlay.classList.add('show');
+
+      let allText = '';
+      for (let i = 0; i < files.length; i++) {
+        loadingText.textContent = `OCR 识别中... (${i + 1}/${files.length})`;
+        try {
+          const result = await Tesseract.recognize(files[i], 'chi_sim+eng', {
+            logger: info => {
+              if (info.status === 'recognizing text') {
+                loadingText.textContent = `识别第 ${i + 1}/${files.length} 张... ${Math.round(info.progress * 100)}%`;
+              }
+            }
+          });
+          allText += result.data.text + '\n';
+        } catch (e) {
+          console.error('OCR error:', e);
+        }
+      }
+
+      overlay.classList.remove('show');
+
+      if (allText.trim()) {
+        document.getElementById('smartInput').value = allText;
+        const record = smartExtract(allText);
+        fillForm(record);
+        alert('OCR 识别完成！已识别 ' + Object.keys(record).length + ' 个字段，请检查并修改。');
+      } else {
+        alert('OCR 未能识别到文字，请尝试更清晰的图片。');
+      }
+
+      document.getElementById('ocrInput').value = '';
+    }
+
+    /**
+     * 附件图片上传
+     */
+    function handleAttachments(files) {
+      if (!files || files.length === 0) return;
+      for (const file of files) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          attachmentImages.push({ file, dataUrl: e.target.result });
+          renderThumbs();
+        };
+        reader.readAsDataURL(file);
+      }
+      document.getElementById('attachInput').value = '';
+    }
+
+    function renderThumbs() {
+      const container = document.getElementById('attachThumbs');
+      container.innerHTML = '';
+      attachmentImages.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'thumb-item';
+        div.innerHTML = `<img src="${item.dataUrl}"><button class="del-btn" onclick="removeAttachment(${idx})">&times;</button>`;
+        container.appendChild(div);
+      });
+    }
+
+    function removeAttachment(idx) {
+      attachmentImages.splice(idx, 1);
+      renderThumbs();
+    }
+
+    /**
+     * 清空所有
+     */
+    function clearAll() {
+      if (!confirm('确定清空所有已填写的信息和上传的图片？')) return;
+      // 只清空主要字段，保留默认值
+      ['f_po','f_date','f_factory','f_booking','f_containerType','f_containerNo',
+       'f_sealNo','f_weight','f_plate','f_driver','f_driverId','f_driverPhone'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      // 恢复默认值
+      document.getElementById('f_to').value = '光普';
+      document.getElementById('f_from').value = '伟航物流';
+      document.getElementById('f_loadPlace').value = '清溪';
+      document.getElementById('f_pickupPlace').value = 'SCT';
+      document.getElementById('f_returnPlace').value = 'SCT';
+      document.getElementById('smartInput').value = '';
+      attachmentImages.length = 0;
+      renderThumbs();
+      document.getElementById('previewContainer').classList.remove('show');
+    }
+
+    /**
+     * 生成预览表格 HTML
+     */
+    function buildPreviewTable(data) {
+      const driverPhone = [data.driver, data.driverPhone].filter(Boolean).join('/');
+      return `
+      <table class="confirm-table">
+        <tr class="title-row"><td colspan="4">柜 号 确 认 单</td></tr>
+        <tr class="empty-row"><td colspan="4"></td></tr>
+        <tr class="empty-row"><td colspan="4"></td></tr>
+        <tr class="header-row">
+          <td style="border-bottom:2px solid #000"><b>TO:</b></td>
+          <td style="border-bottom:2px solid #000">${data.to}</td>
+          <td style="border-bottom:2px solid #000"><b>FROM:</b></td>
+          <td style="border-bottom:2px solid #000">${data.from}</td>
+        </tr>
+        <tr class="header-row">
+          <td style="border-bottom:2px solid #000"><b>装货地点:</b></td>
+          <td style="border-bottom:2px solid #000">${data.loadPlace}</td>
+          <td style="border-bottom:2px solid #000"><b>DATE:</b></td>
+          <td style="border-bottom:2px solid #000">${data.date}</td>
+        </tr>
+        <tr class="empty-row"><td colspan="4"></td></tr>
+        <tr>
+          <td class="label-cell">订 仓 号</td>
+          <td class="value-cell"><b>${data.booking}</b></td>
+          <td class="label-cell">车 &nbsp; 牌</td>
+          <td class="value-cell"><b>${data.plate}</b></td>
+        </tr>
+        <tr>
+          <td class="label-cell">柜 &nbsp; 型</td>
+          <td class="value-cell"><b>${data.containerType}</b></td>
+          <td class="label-cell">司机/电话</td>
+          <td class="value-cell">${driverPhone}</td>
+        </tr>
+        <tr class="empty-row"><td colspan="4"></td></tr>
+        <tr>
+          <td class="label-cell">柜 &nbsp; 号</td>
+          <td class="value-cell"><b>${data.containerNo}</b></td>
+          <td class="label-cell highlight">订单号</td>
+          <td class="value-cell">${data.po}</td>
+        </tr>
+        <tr class="empty-row"><td colspan="4"></td></tr>
+        <tr>
+          <td class="label-cell">封 &nbsp; 条</td>
+          <td class="value-cell">${data.sealNo}</td>
+          <td class="label-cell">密码</td>
+          <td class="value-cell"></td>
+        </tr>
+        <tr>
+          <td class="label-cell">出口口岸</td>
+          <td class="value-cell"></td>
+          <td class="label-cell">车架代码</td>
+          <td class="value-cell"></td>
+        </tr>
+        <tr>
+          <td class="label-cell">车头自重</td>
+          <td class="value-cell"></td>
+          <td class="label-cell">车架自重</td>
+          <td class="value-cell"></td>
+        </tr>
+        <tr>
+          <td class="label-cell">电子关锁号</td>
+          <td class="value-cell"></td>
+          <td class="label-cell">通关卡</td>
+          <td class="value-cell"></td>
+        </tr>
+        <tr>
+          <td class="label-cell">提柜地点</td>
+          <td class="value-cell">${data.pickupPlace}</td>
+          <td class="label-cell">还柜地点</td>
+          <td class="value-cell">${data.returnPlace}</td>
+        </tr>
+        <tr>
+          <td class="label-cell"></td>
+          <td class="label-cell">柜重</td>
+          <td class="value-cell"></td>
+          <td class="value-cell"><b>${data.weight}</b></td>
+        </tr>
+      </table>`;
+    }
+
+    /**
+     * 预览
+     */
+    function showPreview() {
+      const data = getFormData();
+      const layout = document.getElementById('previewLayout');
+      let html = '<div>' + buildPreviewTable(data) + '</div>';
+
+      if (attachmentImages.length > 0) {
+        html += '<div class="preview-images">';
+        for (const img of attachmentImages) {
+          html += `<img src="${img.dataUrl}">`;
+        }
+        html += '</div>';
+      }
+
+      layout.innerHTML = html;
+      document.getElementById('previewContainer').classList.add('show');
+    }
+
+    /**
+     * 导出 Excel — 严格按照柜号确认单截图布局
+     */
+    function getImageDimensions(dataUrl) {
+      return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+        img.onerror = () => resolve({ width: 300, height: 400 });
+        img.src = dataUrl;
+      });
+    }
+
+    async function exportExcel() {
+      const data = getFormData();
+      const workbook = new ExcelJS.Workbook();
+      const ws = workbook.addWorksheet('柜号确认单');
+
+      // 列宽设置 (A-H)
+      ws.columns = [
+        { width: 12 }, // A
+        { width: 6 },  // B
+        { width: 16 }, // C
+        { width: 6 },  // D
+        { width: 4 },  // E
+        { width: 12 }, // F
+        { width: 6 },  // G
+        { width: 18 }, // H
+      ];
+
+      const thinBorder = {
+        top: { style: 'thin' }, bottom: { style: 'thin' },
+        left: { style: 'thin' }, right: { style: 'thin' },
+      };
+      const thickBottom = {
+        bottom: { style: 'medium' },
+      };
+      const boldFont = { bold: true, size: 12, name: 'Microsoft YaHei' };
+      const normalFont = { size: 11, name: 'Microsoft YaHei' };
+      const titleFont = { bold: true, size: 20, name: 'Microsoft YaHei' };
+
+      // Row 1: 标题 - 柜 号 确 认 单
+      ws.mergeCells('A1:H1');
+      const titleCell = ws.getCell('A1');
+      titleCell.value = '柜 号 确 认 单';
+      titleCell.font = titleFont;
+      titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      ws.getRow(1).height = 36;
+
+      // Row 2-3: 空行
+      ws.getRow(2).height = 6;
+      ws.getRow(3).height = 6;
+
+      // Row 4: TO / FROM
+      ws.getCell('A4').value = 'TO:';
+      ws.getCell('A4').font = boldFont;
+      ws.mergeCells('B4:D4');
+      ws.getCell('B4').value = data.to;
+      ws.getCell('B4').font = normalFont;
+      // E4 空
+      ws.getCell('F4').value = 'FROM:';
+      ws.getCell('F4').font = boldFont;
+      ws.mergeCells('G4:H4');
+      ws.getCell('G4').value = data.from;
+      ws.getCell('G4').font = normalFont;
+      // 底线
+      ['A4','B4','C4','D4','F4','G4','H4'].forEach(c => {
+        ws.getCell(c).border = thickBottom;
+      });
+
+      // Row 5: 装货地点 / DATE
+      ws.getCell('A5').value = '装货地点:';
+      ws.getCell('A5').font = boldFont;
+      ws.mergeCells('B5:D5');
+      ws.getCell('B5').value = data.loadPlace;
+      ws.getCell('B5').font = normalFont;
+      ws.getCell('F5').value = 'DATE:';
+      ws.getCell('F5').font = boldFont;
+      ws.mergeCells('G5:H5');
+      ws.getCell('G5').value = data.date;
+      ws.getCell('G5').font = normalFont;
+      ['A5','B5','C5','D5','F5','G5','H5'].forEach(c => {
+        ws.getCell(c).border = thickBottom;
+      });
+
+      // Row 6: 空行
+      ws.getRow(6).height = 6;
+
+      // 辅助：设置一行的4格（label, value, label, value）带边框
+      function setDataRow(rowNum, label1, val1, label2, val2, opts = {}) {
+        const row = ws.getRow(rowNum);
+        row.height = opts.height || 22;
+
+        ws.mergeCells(`A${rowNum}:B${rowNum}`);
+        const cellA = ws.getCell(`A${rowNum}`);
+        cellA.value = label1;
+        cellA.font = boldFont;
+        cellA.alignment = { horizontal: 'center', vertical: 'middle' };
+        cellA.border = thinBorder;
+        ws.getCell(`B${rowNum}`).border = thinBorder;
+
+        ws.mergeCells(`C${rowNum}:E${rowNum}`);
+        const cellC = ws.getCell(`C${rowNum}`);
+        cellC.value = val1 || '';
+        cellC.font = opts.boldVal1 ? boldFont : normalFont;
+        cellC.alignment = { vertical: 'middle' };
+        cellC.border = thinBorder;
+        ws.getCell(`D${rowNum}`).border = thinBorder;
+        ws.getCell(`E${rowNum}`).border = thinBorder;
+
+        ws.mergeCells(`F${rowNum}:G${rowNum}`);
+        const cellF = ws.getCell(`F${rowNum}`);
+        cellF.value = label2;
+        cellF.font = boldFont;
+        cellF.alignment = { horizontal: 'center', vertical: 'middle' };
+        cellF.border = thinBorder;
+        if (opts.highlightLabel2) {
+          cellF.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
+        }
+        ws.getCell(`G${rowNum}`).border = thinBorder;
+
+        const cellH = ws.getCell(`H${rowNum}`);
+        cellH.value = val2 || '';
+        cellH.font = opts.boldVal2 ? boldFont : normalFont;
+        cellH.alignment = { vertical: 'middle' };
+        cellH.border = thinBorder;
+      }
+
+      const driverPhone = [data.driver, data.driverPhone].filter(Boolean).join('/');
+
+      // Row 7: 订仓号 / 车牌
+      setDataRow(7, '订 仓 号', data.booking, '车　牌', data.plate, { boldVal1: true, boldVal2: true });
+      // Row 8: 柜型 / 司机/电话
+      setDataRow(8, '柜　型', data.containerType, '司机/电话', driverPhone, { boldVal1: true });
+      // Row 9: 柜号 / 订单号 (高行，柜号加粗，订单号黄底)
+      setDataRow(9, '柜　号', data.containerNo, '订单号', data.po, { height: 36, boldVal1: true, highlightLabel2: true });
+      // Row 10: 封条 / 密码
+      setDataRow(10, '封　条', data.sealNo, '密码', '');
+      // Row 11: 出口口岸 / 车架代码
+      setDataRow(11, '出口口岸', '', '车架代码', '');
+      // Row 12: 车头自重 / 车架自重
+      setDataRow(12, '车头自重', '', '车架自重', '');
+      // Row 13: 电子关锁号 / 通关卡
+      setDataRow(13, '电子关锁号', '', '通关卡', '');
+      // Row 14: 提柜地点 / 还柜地点
+      setDataRow(14, '提柜地点', data.pickupPlace, '还柜地点', data.returnPlace);
+
+      // Row 15: 柜重行（特殊布局）
+      const r15 = 15;
+      ws.getRow(r15).height = 22;
+      ws.mergeCells(`A${r15}:B${r15}`);
+      ws.getCell(`A${r15}`).border = thinBorder;
+      ws.getCell(`B${r15}`).border = thinBorder;
+
+      ws.mergeCells(`C${r15}:E${r15}`);
+      ws.getCell(`C${r15}`).value = '柜重';
+      ws.getCell(`C${r15}`).font = boldFont;
+      ws.getCell(`C${r15}`).alignment = { horizontal: 'center', vertical: 'middle' };
+      ws.getCell(`C${r15}`).border = thinBorder;
+      ws.getCell(`D${r15}`).border = thinBorder;
+      ws.getCell(`E${r15}`).border = thinBorder;
+
+      ws.mergeCells(`F${r15}:G${r15}`);
+      ws.getCell(`F${r15}`).border = thinBorder;
+      ws.getCell(`G${r15}`).border = thinBorder;
+
+      ws.getCell(`H${r15}`).value = data.weight;
+      ws.getCell(`H${r15}`).font = boldFont;
+      ws.getCell(`H${r15}`).alignment = { horizontal: 'center', vertical: 'middle' };
+      ws.getCell(`H${r15}`).border = thinBorder;
+
+      // ===== 嵌入附件图片（从 I 列开始横向排列）=====
+      // 计算表格区总高度(像素)：Row1-15 的高度之和
+      const tableHeightPx = 36 + 6 + 6 + 22*10 + 36 + 6 + 22; // ≈332px
+      const targetHeightPx = tableHeightPx;
+
+      let imgCol = 9; // I 列 = 第9列
+      for (const item of attachmentImages) {
+        // 获取图片原始尺寸
+        const dims = await getImageDimensions(item.dataUrl);
+        const aspectRatio = dims.width / dims.height;
+
+        // 按目标高度等比计算宽度，然后换算为 Excel 列宽（1列宽≈7px）
+        const targetWidthPx = targetHeightPx * aspectRatio;
+        const colWidth = Math.max(20, Math.round(targetWidthPx / 7));
+        ws.getColumn(imgCol).width = colWidth;
+
+        const imageId = workbook.addImage({
+          base64: item.dataUrl.split(',')[1],
+          extension: item.dataUrl.includes('png') ? 'png' : 'jpeg',
+        });
+
+        // 使用 ext 指定图片实际像素尺寸，保持比例不变形
+        ws.addImage(imageId, {
+          tl: { col: imgCol - 1, row: 0 },
+          ext: { width: targetWidthPx, height: targetHeightPx },
+        });
+
+        imgCol++;
+      }
+
+      // 导出
+      const fileName = (data.plate || '未知车牌') + '-司机资料.xls';
+      const buffer = await workbook.xlsx.writeBuffer();
+      saveAs(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), fileName);
+    }
+  </script>
+</body>
+</html>
