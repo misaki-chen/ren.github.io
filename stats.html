@@ -173,13 +173,17 @@
               <tr>
                 <th>时间</th>
                 <th>页面</th>
-                <th>IP / 位置</th>
+                <th>IP</th>
                 <th>设备</th>
                 <th>浏览器</th>
+                <th>系统</th>
+                <th>分辨率</th>
+                <th>语言</th>
+                <th>来源</th>
               </tr>
             </thead>
             <tbody id="visitorList">
-              <tr><td colspan="5" class="empty">未配置数据源，请先填写 Google Apps Script URL</td></tr>
+              <tr><td colspan="9" class="empty">未配置数据源，请先填写 Google Apps Script URL</td></tr>
             </tbody>
           </table>
         </div>
@@ -333,17 +337,21 @@
       const tbody = document.getElementById('visitorList');
       const recent = rows.slice().reverse().slice(0, 100);
       if (recent.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="empty">暂无数据</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="empty">暂无数据</td></tr>';
         return;
       }
+      // r: [时间0, 页面1, IP2, 城市3, 省份4, 国家5, 设备6, 浏览器7, 系统8, 分辨率9, 语言10, 来源11]
       tbody.innerHTML = recent.map(r => {
-        const location = [r[3], r[4], r[5]].filter(Boolean).join(', ') || '-';
         return `<tr>
           <td style="white-space:nowrap">${r[0] || '-'}</td>
           <td><span class="badge badge-page">${r[1] || '-'}</span></td>
-          <td>${r[2] || '-'}<br><small style="color:#666">${location}</small></td>
-          <td><span class="badge badge-device">${r[6] || '-'}</span> ${r[8] || ''}</td>
+          <td>${r[2] || '-'}</td>
+          <td><span class="badge badge-device">${r[6] || '-'}</span></td>
           <td>${r[7] || '-'}</td>
+          <td>${r[8] || '-'}</td>
+          <td>${r[9] || '-'}</td>
+          <td>${r[10] || '-'}</td>
+          <td>${r[11] || '-'}</td>
         </tr>`;
       }).join('');
     }
