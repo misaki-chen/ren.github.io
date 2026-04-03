@@ -255,18 +255,33 @@ function doGet(e) {
     async function loadData(url) {
       try {
         setStatus('正在加载...', '');
-        const res = await fetch(url, { redirect: 'follow' });
-        const text = await res.text();
+        // 方法1: 直接 fetch Google Apps Script
         let data;
-        try { data = JSON.parse(text); } catch(e) {
-          setStatus('返回数据格式错误', 'err');
-          return;
+        try {
+          const res = await fetch(url, { redirect: 'follow' });
+          const text = await res.text();
+          data = JSON.parse(text);
+        } catch(e1) {
+          // 方法2: 通过 script 标签 + callback 绕过 CORS
+          data = await new Promise((resolve, reject) => {
+            const callbackName = '_gsCb' + Date.now();
+            const timeout = setTimeout(() => { reject(new Error('加载超时')); }, 15000);
+            window[callbackName] = function(d) {
+              clearTimeout(timeout);
+              delete window[callbackName];
+              resolve(d);
+            };
+            const script = document.createElement('script');
+            script.src = url + '?callback=' + callbackName;
+            script.onerror = () => { clearTimeout(timeout); reject(new Error('脚本加载失败')); };
+            document.body.appendChild(script);
+          });
         }
         if (!Array.isArray(data)) data = [];
         setStatus('数据加载成功，共 ' + data.length + ' 条记录', 'ok');
         renderData(data);
       } catch(e) {
-        setStatus('加载失败: ' + e.message + '（请确认已提交到 GitHub Pages，本地 file:// 无法加载）', 'err');
+        setStatus('加载失败: ' + e.message, 'err');
       }
     }
 
