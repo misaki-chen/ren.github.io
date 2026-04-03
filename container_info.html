@@ -181,6 +181,19 @@
       object-fit: contain; border-radius: 4px; border: 1px solid #ddd;
     }
 
+    /* 折叠 */
+    .collapse-header {
+      color: #333; font-size: 18px; font-weight: bold; cursor: pointer;
+      border-bottom: 2px solid #667eea; padding-bottom: 8px; margin-bottom: 20px;
+      list-style: none; user-select: none;
+    }
+    .collapse-header::-webkit-details-marker { display: none; }
+    .collapse-header::after {
+      content: ' \25B2'; font-size: 12px; color: #999; float: right;
+    }
+    details:not([open]) .collapse-header::after { content: ' \25BC'; }
+    .collapse-body { margin-top: 0; }
+
     /* 提示 */
     .tips {
       background: #fff3e0; border-left: 4px solid #ff9800;
@@ -213,87 +226,90 @@
 
     <!-- 信息表单 -->
     <div class="section">
-      <h2>&#128221; 柜号信息</h2>
+      <details open>
+        <summary class="collapse-header">&#128221; 柜号信息</summary>
+        <div class="collapse-body">
+          <div style="margin-bottom:16px;">
+            <strong style="color:#999;font-size:13px;">-- 默认值字段（可修改）--</strong>
+          </div>
+          <div class="form-grid" style="margin-bottom:20px;">
+            <div class="form-group default-field">
+              <label>TO (收货方)</label>
+              <input type="text" id="f_to" value="光普">
+            </div>
+            <div class="form-group default-field">
+              <label>FROM (物流公司)</label>
+              <input type="text" id="f_from" value="伟航物流">
+            </div>
+            <div class="form-group default-field">
+              <label>装货地点</label>
+              <input type="text" id="f_loadPlace" value="清溪">
+            </div>
+            <div class="form-group default-field">
+              <label>提柜地点</label>
+              <input type="text" id="f_pickupPlace" value="SCT">
+            </div>
+            <div class="form-group default-field">
+              <label>还柜地点</label>
+              <input type="text" id="f_returnPlace" value="SCT">
+            </div>
+          </div>
 
-      <div style="margin-bottom:16px;">
-        <strong style="color:#999;font-size:13px;">-- 默认值字段（可修改）--</strong>
-      </div>
-      <div class="form-grid" style="margin-bottom:20px;">
-        <div class="form-group default-field">
-          <label>TO (收货方)</label>
-          <input type="text" id="f_to" value="光普">
+          <div style="margin-bottom:16px;">
+            <strong style="color:#999;font-size:13px;">-- 主要字段 --</strong>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>订单号</label>
+              <input type="text" id="f_po" placeholder="如 PO:0117250717">
+            </div>
+            <div class="form-group">
+              <label>做柜时间</label>
+              <input type="text" id="f_date" placeholder="如 03/31/14:00">
+            </div>
+            <div class="form-group">
+              <label>工厂名称</label>
+              <input type="text" id="f_factory" placeholder="工厂名称">
+            </div>
+            <div class="form-group">
+              <label>订舱号</label>
+              <input type="text" id="f_booking" placeholder="如 TN2613N2060">
+            </div>
+            <div class="form-group">
+              <label>柜型</label>
+              <input type="text" id="f_containerType" placeholder="如 40HQ">
+            </div>
+            <div class="form-group">
+              <label>柜号</label>
+              <input type="text" id="f_containerNo" placeholder="如 SEKU6536421">
+            </div>
+            <div class="form-group">
+              <label>封号</label>
+              <input type="text" id="f_sealNo" placeholder="如 KWS913986">
+            </div>
+            <div class="form-group">
+              <label>柜重 (kg)</label>
+              <input type="text" id="f_weight" placeholder="如 3700">
+            </div>
+            <div class="form-group">
+              <label>车牌</label>
+              <input type="text" id="f_plate" placeholder="如 粤BEX462">
+            </div>
+            <div class="form-group">
+              <label>司机</label>
+              <input type="text" id="f_driver" placeholder="司机姓名">
+            </div>
+            <div class="form-group">
+              <label>司机身份证号</label>
+              <input type="text" id="f_driverId" placeholder="18位身份证号">
+            </div>
+            <div class="form-group">
+              <label>司机手机号</label>
+              <input type="text" id="f_driverPhone" placeholder="11位手机号">
+            </div>
+          </div>
         </div>
-        <div class="form-group default-field">
-          <label>FROM (物流公司)</label>
-          <input type="text" id="f_from" value="伟航物流">
-        </div>
-        <div class="form-group default-field">
-          <label>装货地点</label>
-          <input type="text" id="f_loadPlace" value="清溪">
-        </div>
-        <div class="form-group default-field">
-          <label>提柜地点</label>
-          <input type="text" id="f_pickupPlace" value="SCT">
-        </div>
-        <div class="form-group default-field">
-          <label>还柜地点</label>
-          <input type="text" id="f_returnPlace" value="SCT">
-        </div>
-      </div>
-
-      <div style="margin-bottom:16px;">
-        <strong style="color:#999;font-size:13px;">-- 主要字段 --</strong>
-      </div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>订单号</label>
-          <input type="text" id="f_po" placeholder="如 PO:0117250717">
-        </div>
-        <div class="form-group">
-          <label>做柜时间</label>
-          <input type="text" id="f_date" placeholder="如 03/31/14:00">
-        </div>
-        <div class="form-group">
-          <label>工厂名称</label>
-          <input type="text" id="f_factory" placeholder="工厂名称">
-        </div>
-        <div class="form-group">
-          <label>订舱号</label>
-          <input type="text" id="f_booking" placeholder="如 TN2613N2060">
-        </div>
-        <div class="form-group">
-          <label>柜型</label>
-          <input type="text" id="f_containerType" placeholder="如 40HQ">
-        </div>
-        <div class="form-group">
-          <label>柜号</label>
-          <input type="text" id="f_containerNo" placeholder="如 SEKU6536421">
-        </div>
-        <div class="form-group">
-          <label>封号</label>
-          <input type="text" id="f_sealNo" placeholder="如 KWS913986">
-        </div>
-        <div class="form-group">
-          <label>柜重 (kg)</label>
-          <input type="text" id="f_weight" placeholder="如 3700">
-        </div>
-        <div class="form-group">
-          <label>车牌</label>
-          <input type="text" id="f_plate" placeholder="如 粤BEX462">
-        </div>
-        <div class="form-group">
-          <label>司机</label>
-          <input type="text" id="f_driver" placeholder="司机姓名">
-        </div>
-        <div class="form-group">
-          <label>司机身份证号</label>
-          <input type="text" id="f_driverId" placeholder="18位身份证号">
-        </div>
-        <div class="form-group">
-          <label>司机手机号</label>
-          <input type="text" id="f_driverPhone" placeholder="11位手机号">
-        </div>
-      </div>
+      </details>
     </div>
 
     <!-- 附件图片上传 -->
