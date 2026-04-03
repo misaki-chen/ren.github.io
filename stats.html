@@ -30,6 +30,16 @@
       font-size: 16px; color: #a78bfa; margin-bottom: 12px;
       border-bottom: 1px solid #2a2a4a; padding-bottom: 8px;
     }
+    .section summary {
+      font-size: 16px; color: #a78bfa; margin-bottom: 12px;
+      border-bottom: 1px solid #2a2a4a; padding-bottom: 8px;
+      cursor: pointer; list-style: none; user-select: none;
+    }
+    .section summary::-webkit-details-marker { display: none; }
+    .section summary::after {
+      content: ' \25B2'; font-size: 10px; color: #555; float: right;
+    }
+    .section details:not([open]) summary::after { content: ' \25BC'; }
 
     /* 配置区 */
     .config-bar {
@@ -90,15 +100,12 @@
     <a href="index.html" class="back-link">&larr; 返回首页</a>
     <h1>访问统计面板</h1>
 
-    <!-- 配置 Google Sheets URL -->
-    <div class="config-bar">
-      <label>Google Apps Script Web App URL</label>
-      <input type="text" id="trackerUrl" placeholder="https://script.google.com/macros/s/xxxxx/exec">
-      <div class="hint">
-        配置后数据自动保存到 Google Sheets。<a href="#" onclick="showSetupGuide();return false" style="color:#a78bfa">查看配置教程</a>
+    <!-- 数据加载状态 -->
+    <div class="config-bar" style="padding:12px 16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="status" id="configStatus" style="margin:0">正在加载数据...</span>
+        <button onclick="loadData()" style="margin:0;padding:4px 12px;">刷新数据</button>
       </div>
-      <button onclick="saveConfig()">保存并加载数据</button>
-      <div class="status" id="configStatus"></div>
     </div>
 
     <!-- 概览 -->
@@ -123,86 +130,60 @@
 
     <!-- 不蒜子统计 -->
     <div class="section">
-      <h2>不蒜子全站统计</h2>
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="label">全站 PV</div>
-          <div class="value" id="bsz_pv">-</div>
-          <div class="sub">页面浏览总次数</div>
+      <details open>
+        <summary>不蒜子全站统计</summary>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="label">全站 PV</div>
+            <div class="value" id="bsz_pv">-</div>
+            <div class="sub">页面浏览总次数</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">全站 UV</div>
+            <div class="value" id="bsz_uv">-</div>
+            <div class="sub">独立访客人数</div>
+          </div>
         </div>
-        <div class="stat-card">
-          <div class="label">全站 UV</div>
-          <div class="value" id="bsz_uv">-</div>
-          <div class="sub">独立访客人数</div>
-        </div>
-      </div>
+      </details>
     </div>
 
     <!-- 不蒜子各页面统计 -->
     <div class="section">
-      <h2>不蒜子 - 各工具页面 PV</h2>
-      <div id="bszPageStats" style="color:#555">加载中...</div>
+      <details open>
+        <summary>不蒜子 - 各工具页面 PV</summary>
+        <div id="bszPageStats" style="color:#555">加载中...</div>
+      </details>
     </div>
 
     <!-- Google Sheets 各页面统计 -->
     <div class="section">
-      <h2>Tracker - 各工具访问量</h2>
-      <div id="pageStats"></div>
+      <details open>
+        <summary>Tracker - 各工具访问量</summary>
+        <div id="pageStats"></div>
+      </details>
     </div>
 
     <!-- 最近访客 -->
     <div class="section">
-      <h2>最近访客记录</h2>
-      <div class="table-wrap">
-        <table class="visitor-table">
-          <thead>
-            <tr>
-              <th>时间</th>
-              <th>页面</th>
-              <th>IP / 位置</th>
-              <th>设备</th>
-              <th>浏览器</th>
-            </tr>
-          </thead>
-          <tbody id="visitorList">
-            <tr><td colspan="5" class="empty">未配置数据源，请先填写 Google Apps Script URL</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- 配置教程 -->
-    <div class="section" id="setupGuide" style="display:none">
-      <h2>配置教程</h2>
-      <div style="background:#16213e;border:1px solid #2a2a4a;border-radius:8px;padding:20px;font-size:13px;line-height:1.8;">
-        <p><b>1.</b> 打开 <a href="https://sheets.google.com" target="_blank" style="color:#a78bfa">Google Sheets</a>，新建一个表格</p>
-        <p><b>2.</b> 在第一行添加表头：<code style="color:#60a5fa">时间 | 页面 | IP | 城市 | 省份 | 国家 | 设备 | 浏览器 | 系统 | 分辨率 | 语言 | 来源</code></p>
-        <p><b>3.</b> 点击菜单 <b>扩展程序 → Apps Script</b></p>
-        <p><b>4.</b> 删除默认代码，粘贴以下代码：</p>
-        <pre style="background:#0f0f23;padding:12px;border-radius:6px;overflow-x:auto;margin:8px 0;color:#a5f3fc;font-size:12px;">
-function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  var data = JSON.parse(e.postData.contents);
-  sheet.appendRow([
-    data.timestamp, data.page, data.ip, data.city,
-    data.region, data.country, data.device, data.browser,
-    data.os, data.screen, data.language, data.referrer
-  ]);
-  return ContentService.createTextOutput('ok');
-}
-
-function doGet(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  var data = sheet.getDataRange().getValues();
-  var recent = data.slice(1).slice(-200);
-  return ContentService.createTextOutput(JSON.stringify(recent))
-    .setMimeType(ContentService.MimeType.JSON);
-}</pre>
-        <p><b>5.</b> 点击 <b>部署 → 新建部署</b>，类型选 <b>Web 应用</b></p>
-        <p><b>6.</b> "谁有权访问" 选 <b>任何人</b>，点击部署</p>
-        <p><b>7.</b> 复制部署 URL，粘贴到上方输入框</p>
-        <p><b>8.</b> 同时把 URL 填入 <code style="color:#60a5fa">tracker.js</code> 文件顶部的 <code style="color:#60a5fa">TRACKER_URL</code> 变量</p>
-      </div>
+      <details open>
+        <summary>最近访客记录</summary>
+        <div class="table-wrap">
+          <table class="visitor-table">
+            <thead>
+              <tr>
+                <th>时间</th>
+                <th>页面</th>
+                <th>IP / 位置</th>
+                <th>设备</th>
+                <th>浏览器</th>
+              </tr>
+            </thead>
+            <tbody id="visitorList">
+              <tr><td colspan="5" class="empty">未配置数据源，请先填写 Google Apps Script URL</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
     </div>
 
     <p class="note">仅管理员可见</p>
@@ -282,20 +263,10 @@ function doGet(e) {
     // 自动加载数据（直接从 Google Sheets CSV 读取）
     loadData();
 
-    function saveConfig() {
-      setStatus('正在加载...', '');
-      loadData();
-    }
-
     function setStatus(msg, type) {
       const el = document.getElementById('configStatus');
       el.textContent = msg;
       el.className = 'status ' + (type || '');
-    }
-
-    function showSetupGuide() {
-      const guide = document.getElementById('setupGuide');
-      guide.style.display = guide.style.display === 'none' ? 'block' : 'none';
     }
 
     // Google Sheets 公开 CSV 接口（绕过 CORS）
