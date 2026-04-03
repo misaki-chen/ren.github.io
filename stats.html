@@ -226,19 +226,12 @@ function doGet(e) {
       setTimeout(() => clearInterval(check), 10000);
     })();
 
-    const STORAGE_KEY = 'ren_tracker_url';
-    const DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbylXqKiqxI7yi2cy49i6xrO9-vuZYKn6McWo7wcoS9w2phAEegFLc13vhTOxN_UhscU/exec';
-    const urlInput = document.getElementById('trackerUrl');
-    const saved = localStorage.getItem(STORAGE_KEY) || DEFAULT_URL;
-    urlInput.value = saved;
-    loadData(saved);
+    // 自动加载数据（直接从 Google Sheets CSV 读取）
+    loadData();
 
     function saveConfig() {
-      const url = urlInput.value.trim();
-      if (!url) { setStatus('请输入 URL', 'err'); return; }
-      localStorage.setItem(STORAGE_KEY, url);
-      setStatus('已保存，正在加载数据...', 'ok');
-      loadData(url);
+      setStatus('正在加载...', '');
+      loadData();
     }
 
     function setStatus(msg, type) {
@@ -252,32 +245,30 @@ function doGet(e) {
       guide.style.display = guide.style.display === 'none' ? 'block' : 'none';
     }
 
-    async function loadData(url) {
+    // Google Sheets 公开 CSV 接口（绕过 CORS）
+    const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1ZhWsjeQBFTUClo0dsbjV1AYzLM124OeQzIkbZl4cm2c/export?format=csv';
+
+    async function loadData() {
       try {
         setStatus('正在加载...', '');
-        // 方法1: 直接 fetch Google Apps Script
-        let data;
-        try {
-          const res = await fetch(url, { redirect: 'follow' });
-          const text = await res.text();
-          data = JSON.parse(text);
-        } catch(e1) {
-          // 方法2: 通过 script 标签 + callback 绕过 CORS
-          data = await new Promise((resolve, reject) => {
-            const callbackName = '_gsCb' + Date.now();
-            const timeout = setTimeout(() => { reject(new Error('加载超时')); }, 15000);
-            window[callbackName] = function(d) {
-              clearTimeout(timeout);
-              delete window[callbackName];
-              resolve(d);
-            };
-            const script = document.createElement('script');
-            script.src = url + '?callback=' + callbackName;
-            script.onerror = () => { clearTimeout(timeout); reject(new Error('脚本加载失败')); };
-            document.body.appendChild(script);
-          });
-        }
-        if (!Array.isArray(data)) data = [];
+        const res = await fetch(SHEET_CSV_URL);
+        const text = await res.text();
+        // 解析 CSV
+        const rows = text.trim().split('\n').map(row => {
+          // 简单 CSV 解析：处理逗号分隔，支持引号包裹
+          const result = [];
+          let current = '', inQuotes = false;
+          for (let i = 0; i < row.length; i++) {
+            const ch = row[i];
+            if (ch === '"') { inQuotes = !inQuotes; }
+            else if (ch === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
+            else { current += ch; }
+          }
+          result.push(current.trim());
+          return result;
+        });
+        // 去掉表头
+        const data = rows.slice(1).filter(r => r.some(cell => cell));
         setStatus('数据加载成功，共 ' + data.length + ' 条记录', 'ok');
         renderData(data);
       } catch(e) {
