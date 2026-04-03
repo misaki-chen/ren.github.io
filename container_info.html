@@ -316,9 +316,9 @@
     <div class="section">
       <h2>&#128247; 附件图片（嵌入Excel）</h2>
       <div class="tips">上传柜门照、封条照等图片，将嵌入到导出的 Excel 文件右侧。</div>
-      <div class="attachment-area" onclick="document.getElementById('attachInput').click()">
+      <div class="attachment-area" id="attachDropArea" onclick="document.getElementById('attachInput').click()">
         <div class="icon">&#128444;</div>
-        <p><strong>点击上传附件图片</strong><br>支持多张，JPG/PNG 格式</p>
+        <p><strong>点击上传 或 Ctrl+V 粘贴截图</strong><br>支持多张，JPG/PNG 格式</p>
       </div>
       <input type="file" id="attachInput" accept="image/*" multiple style="display:none" onchange="handleAttachments(this.files)">
       <div class="thumb-list" id="attachThumbs"></div>
@@ -358,6 +358,24 @@
   <script>
     // ===== 附件图片数据 =====
     const attachmentImages = []; // { file, dataUrl }
+
+    // ===== 监听粘贴事件（Ctrl+V 截图）=====
+    document.addEventListener('paste', function(e) {
+      const items = e.clipboardData && e.clipboardData.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          e.preventDefault();
+          const file = item.getAsFile();
+          const reader = new FileReader();
+          reader.onload = function(ev) {
+            attachmentImages.push({ file, dataUrl: ev.target.result });
+            renderThumbs();
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    });
 
     // ===== 字段别名映射 =====
     const keywordMap = [
