@@ -10,7 +10,7 @@
       font-family: "Microsoft YaHei", Arial, sans-serif;
       background: #1a1a2e; color: #eee; min-height: 100vh; padding: 40px 20px;
     }
-    .container { max-width: 1000px; margin: 0 auto; }
+    .container { max-width: 1100px; margin: 0 auto; }
     h1 { text-align: center; margin-bottom: 32px; font-size: 24px; color: #a78bfa; }
 
     .stats-grid {
@@ -26,62 +26,74 @@
     .stat-card .sub { font-size: 11px; color: #555; margin-top: 4px; }
 
     .section { margin-top: 32px; }
-    .section h2 {
-      font-size: 16px; color: #a78bfa; margin-bottom: 12px;
-      border-bottom: 1px solid #2a2a4a; padding-bottom: 8px;
-    }
     .section summary {
       font-size: 16px; color: #a78bfa; margin-bottom: 12px;
       border-bottom: 1px solid #2a2a4a; padding-bottom: 8px;
       cursor: pointer; list-style: none; user-select: none;
     }
     .section summary::-webkit-details-marker { display: none; }
-    .section summary::after {
-      content: ' \25B2'; font-size: 10px; color: #555; float: right;
-    }
+    .section summary::after { content: ' \25B2'; font-size: 10px; color: #555; float: right; }
     .section details:not([open]) summary::after { content: ' \25BC'; }
 
-    /* 配置区 */
-    .config-bar {
+    /* 状态栏 */
+    .status-bar {
       background: #16213e; border: 1px solid #2a2a4a; border-radius: 8px;
-      padding: 16px; margin-bottom: 24px;
+      padding: 12px 16px; margin-bottom: 24px;
+      display: flex; justify-content: space-between; align-items: center;
     }
-    .config-bar label { font-size: 13px; color: #888; display: block; margin-bottom: 6px; }
-    .config-bar input {
-      width: 100%; padding: 8px 12px; border: 1px solid #2a2a4a; border-radius: 6px;
-      background: #0f0f23; color: #eee; font-size: 13px; font-family: monospace;
-    }
-    .config-bar .hint { font-size: 11px; color: #555; margin-top: 6px; }
-    .config-bar button {
-      margin-top: 10px; padding: 6px 16px; border: none; border-radius: 6px;
+    .status-bar button {
+      padding: 4px 12px; border: none; border-radius: 6px;
       background: #a78bfa; color: white; cursor: pointer; font-size: 13px;
     }
-    .config-bar button:hover { background: #8b6fdf; }
+    .status-bar button:hover { background: #8b6fdf; }
+    .status { font-size: 12px; }
+    .status.ok { color: #6ee76e; }
+    .status.err { color: #f87171; }
+
+    /* 筛选栏 */
+    .filter-bar {
+      background: #16213e; border: 1px solid #2a2a4a; border-radius: 8px;
+      padding: 14px 16px; margin-bottom: 24px;
+      display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+    }
+    .filter-bar select, .filter-bar input {
+      padding: 6px 10px; border: 1px solid #2a2a4a; border-radius: 6px;
+      background: #0f0f23; color: #eee; font-size: 13px;
+    }
+    .filter-bar select { min-width: 120px; }
+    .filter-bar input { min-width: 160px; flex: 1; }
+    .filter-bar label { font-size: 12px; color: #888; }
+    .filter-group { display: flex; flex-direction: column; gap: 4px; }
+
+    /* 图表区 */
+    .charts-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px;
+    }
+    .chart-card {
+      background: #16213e; border: 1px solid #2a2a4a; border-radius: 10px;
+      padding: 16px;
+    }
+    .chart-card.full { grid-column: 1 / -1; }
+    .chart-card h3 { font-size: 13px; color: #888; margin-bottom: 12px; }
 
     /* 访客表格 */
-    .visitor-table {
-      width: 100%; border-collapse: collapse; font-size: 13px;
-    }
+    .visitor-table { width: 100%; border-collapse: collapse; font-size: 12px; }
     .visitor-table th {
-      background: #16213e; color: #a78bfa; padding: 10px 12px;
+      background: #16213e; color: #a78bfa; padding: 8px 10px;
       text-align: left; border-bottom: 1px solid #2a2a4a;
-      position: sticky; top: 0;
+      position: sticky; top: 0; white-space: nowrap;
     }
-    .visitor-table td {
-      padding: 8px 12px; border-bottom: 1px solid #1a1a3e;
-    }
+    .visitor-table td { padding: 6px 10px; border-bottom: 1px solid #1a1a3e; white-space: nowrap; }
     .visitor-table tr:hover td { background: #16213e; }
     .table-wrap {
-      max-height: 500px; overflow-y: auto; border-radius: 8px;
+      max-height: 500px; overflow: auto; border-radius: 8px;
       border: 1px solid #2a2a4a;
     }
 
-    .badge {
-      display: inline-block; padding: 2px 8px; border-radius: 4px;
-      font-size: 11px; font-weight: bold;
-    }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
     .badge-page { background: #1e3a5f; color: #60a5fa; }
     .badge-device { background: #1e3e1e; color: #6ee76e; }
+    .badge-action { background: #3e1e3e; color: #f0abfc; }
 
     .empty { text-align: center; color: #555; padding: 40px; }
     .back-link {
@@ -90,9 +102,6 @@
     }
     .back-link:hover { opacity: 1; }
     .note { text-align: center; color: #444; font-size: 11px; margin-top: 40px; }
-    .status { font-size: 12px; margin-top: 8px; }
-    .status.ok { color: #6ee76e; }
-    .status.err { color: #f87171; }
   </style>
 </head>
 <body>
@@ -100,15 +109,13 @@
     <a href="index.html" class="back-link">&larr; 返回首页</a>
     <h1>访问统计面板</h1>
 
-    <!-- 数据加载状态 -->
-    <div class="config-bar" style="padding:12px 16px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span class="status" id="configStatus" style="margin:0">正在加载数据...</span>
-        <button onclick="loadData()" style="margin:0;padding:4px 12px;">刷新数据</button>
-      </div>
+    <!-- 状态栏 -->
+    <div class="status-bar">
+      <span class="status" id="configStatus">正在加载数据...</span>
+      <button onclick="loadData()">刷新数据</button>
     </div>
 
-    <!-- 概览 -->
+    <!-- 概览卡片 -->
     <div class="stats-grid" id="overviewCards">
       <div class="stat-card">
         <div class="label">总访问记录</div>
@@ -128,9 +135,69 @@
       </div>
     </div>
 
-    <!-- 不蒜子统计 -->
+    <!-- 筛选栏 -->
+    <div class="filter-bar" id="filterBar">
+      <div class="filter-group">
+        <label>时间</label>
+        <select id="filterTime" onchange="applyFilters()">
+          <option value="all">全部</option>
+          <option value="today">今天</option>
+          <option value="7d">最近7天</option>
+          <option value="30d">最近30天</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>页面</label>
+        <select id="filterPage" onchange="applyFilters()">
+          <option value="all">全部页面</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>类型</label>
+        <select id="filterType" onchange="applyFilters()">
+          <option value="all">全部</option>
+          <option value="visit">页面访问</option>
+          <option value="action">按钮操作</option>
+        </select>
+      </div>
+      <div class="filter-group" style="flex:1">
+        <label>搜索</label>
+        <input type="text" id="filterSearch" placeholder="搜索 IP / 浏览器 / 系统..." oninput="applyFilters()">
+      </div>
+    </div>
+
+    <!-- 图表区 -->
     <div class="section">
       <details open>
+        <summary>统计图表</summary>
+        <div class="charts-grid">
+          <div class="chart-card full">
+            <h3>访问趋势（最近30天）</h3>
+            <canvas id="chartTrend" height="80"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>工具使用分布</h3>
+            <canvas id="chartPages"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>操作排行</h3>
+            <canvas id="chartActions"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>设备分布</h3>
+            <canvas id="chartDevices"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>浏览器分布</h3>
+            <canvas id="chartBrowsers"></canvas>
+          </div>
+        </div>
+      </details>
+    </div>
+
+    <!-- 不蒜子统计 -->
+    <div class="section">
+      <details>
         <summary>不蒜子全站统计</summary>
         <div class="stats-grid">
           <div class="stat-card">
@@ -149,13 +216,13 @@
 
     <!-- 不蒜子各页面统计 -->
     <div class="section">
-      <details open>
+      <details>
         <summary>不蒜子 - 各工具页面 PV</summary>
         <div id="bszPageStats" style="color:#555">加载中...</div>
       </details>
     </div>
 
-    <!-- Google Sheets 各页面统计 -->
+    <!-- Tracker 各页面统计 -->
     <div class="section">
       <details open>
         <summary>Tracker - 各工具访问量</summary>
@@ -166,7 +233,7 @@
     <!-- 最近访客 -->
     <div class="section">
       <details open>
-        <summary>最近访客记录</summary>
+        <summary>最近访客记录 (<span id="filteredCount">0</span> 条)</summary>
         <div class="table-wrap">
           <table class="visitor-table">
             <thead>
@@ -183,7 +250,7 @@
               </tr>
             </thead>
             <tbody id="visitorList">
-              <tr><td colspan="9" class="empty">未配置数据源，请先填写 Google Apps Script URL</td></tr>
+              <tr><td colspan="9" class="empty">加载中...</td></tr>
             </tbody>
           </table>
         </div>
@@ -200,10 +267,21 @@
   <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
   <!-- 访客追踪 -->
   <script src="tracker.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
   <script>
-    // 从 localStorage 读取配置
-    // 不蒜子全站数据加载
+    // ===== 全局数据 =====
+    let allData = [];       // 原始数据
+    let filteredData = [];  // 筛选后的数据
+
+    // 按钮操作名列表（用于区分页面访问和按钮操作）
+    const ACTION_NAMES = ['智能识别','OCR识别','预览','导出xlsx','导出xls','批量导入','预览全部','导出Word','生成PDF'];
+
+    // 图表实例
+    let charts = {};
+
+    // ===== 不蒜子 =====
     (function waitBsz() {
       const check = setInterval(() => {
         const pv = document.getElementById('busuanzi_value_site_pv');
@@ -212,68 +290,52 @@
           clearInterval(check);
           document.getElementById('bsz_pv').textContent = pv.textContent;
           document.getElementById('bsz_uv').textContent = uv.textContent;
-          // 全站数据加载完后，开始加载各页面 PV
           loadBszPageStats();
         }
       }, 300);
       setTimeout(() => clearInterval(check), 10000);
     })();
 
-    // 不蒜子各页面 PV 统计
     function loadBszPageStats() {
       const pages = [
         { name: '首页', url: 'index.html' },
         { name: '柜号确认单', url: 'container_info.html' },
-        { name: '授权书 - 多格式版', url: 'authorization_letter_multiple.html' },
+        { name: '授权书', url: 'authorization_letter_multiple.html' },
         { name: '多功能工具', url: 'muiltiple_tool.html' },
         { name: '统计面板', url: 'stats.html' },
       ];
-
       const container = document.getElementById('bszPageStats');
       container.innerHTML = '';
-
       pages.forEach(page => {
         const row = document.createElement('div');
         row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#16213e;border-radius:8px;margin-bottom:6px;border:1px solid #2a2a4a;';
-        row.innerHTML = '<span>' + page.name + '<br><small style="color:#555">' + page.url + '</small></span><span style="font-weight:bold;color:#a78bfa;font-size:18px;" id="bsz_page_' + page.url + '">-</span>';
+        row.innerHTML = '<span>' + page.name + '</span><span style="font-weight:bold;color:#a78bfa;font-size:18px;" id="bsz_page_' + page.url + '">-</span>';
         container.appendChild(row);
-
-        // iframe 方式获取各页面不蒜子 PV
         const iframe = document.createElement('iframe');
         iframe.style.display = 'none';
         iframe.src = page.url;
         iframe.onload = function() {
           try {
-            const doc = iframe.contentDocument;
-            const pvSpan = doc.getElementById('busuanzi_value_page_pv');
+            const pvSpan = iframe.contentDocument.getElementById('busuanzi_value_page_pv');
             if (pvSpan) {
-              const check = setInterval(() => {
-                if (pvSpan.textContent && pvSpan.textContent !== '') {
-                  clearInterval(check);
-                  document.getElementById('bsz_page_' + page.url).textContent = pvSpan.textContent;
-                  try { document.body.removeChild(iframe); } catch(e) {}
-                }
+              const c = setInterval(() => {
+                if (pvSpan.textContent) { clearInterval(c); document.getElementById('bsz_page_' + page.url).textContent = pvSpan.textContent; try{document.body.removeChild(iframe)}catch(e){} }
               }, 300);
-              setTimeout(() => { clearInterval(check); }, 8000);
+              setTimeout(() => clearInterval(c), 8000);
             }
-          } catch(e) {
-            document.getElementById('bsz_page_' + page.url).textContent = '无法获取';
-          }
+          } catch(e) {}
         };
         document.body.appendChild(iframe);
       });
     }
 
-    // 自动加载数据（直接从 Google Sheets CSV 读取）
-    loadData();
-
+    // ===== 数据加载 =====
     function setStatus(msg, type) {
       const el = document.getElementById('configStatus');
       el.textContent = msg;
       el.className = 'status ' + (type || '');
     }
 
-    // Google Sheets 公开 CSV 接口（绕过 CORS）
     const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1ZhWsjeQBFTUClo0dsbjV1AYzLM124OeQzIkbZl4cm2c/export?format=csv';
 
     async function loadData() {
@@ -281,9 +343,7 @@
         setStatus('正在加载...', '');
         const res = await fetch(SHEET_CSV_URL);
         const text = await res.text();
-        // 解析 CSV
         const rows = text.trim().split('\n').map(row => {
-          // 简单 CSV 解析：处理逗号分隔，支持引号包裹
           const result = [];
           let current = '', inQuotes = false;
           for (let i = 0; i < row.length; i++) {
@@ -295,65 +355,212 @@
           result.push(current.trim());
           return result;
         });
-        // 去掉表头
-        const data = rows.slice(1).filter(r => r.some(cell => cell));
-        setStatus('数据加载成功，共 ' + data.length + ' 条记录', 'ok');
-        renderData(data);
+        allData = rows.slice(1).filter(r => r.some(cell => cell));
+        setStatus('数据加载成功，共 ' + allData.length + ' 条记录', 'ok');
+        initFilters();
+        applyFilters();
       } catch(e) {
         setStatus('加载失败: ' + e.message, 'err');
       }
     }
 
-    function renderData(rows) {
-      // rows: [[时间, 页面, IP, 城市, 省份, 国家, 设备, 浏览器, 系统, 分辨率, 语言, 来源], ...]
+    loadData();
+
+    // ===== 筛选 =====
+    function initFilters() {
+      // 动态填充页面下拉
+      const pageSet = new Set(allData.map(r => r[1]).filter(Boolean));
+      const sel = document.getElementById('filterPage');
+      sel.innerHTML = '<option value="all">全部页面</option>';
+      [...pageSet].sort().forEach(p => {
+        sel.innerHTML += '<option value="' + p + '">' + p + '</option>';
+      });
+    }
+
+    function applyFilters() {
+      const timeVal = document.getElementById('filterTime').value;
+      const pageVal = document.getElementById('filterPage').value;
+      const typeVal = document.getElementById('filterType').value;
+      const searchVal = document.getElementById('filterSearch').value.toLowerCase();
+
+      const now = new Date();
+      filteredData = allData.filter(r => {
+        // 时间筛选
+        if (timeVal !== 'all' && r[0]) {
+          const rowDate = parseDate(r[0]);
+          if (rowDate) {
+            const diffDays = (now - rowDate) / (1000 * 60 * 60 * 24);
+            if (timeVal === 'today' && diffDays > 1) return false;
+            if (timeVal === '7d' && diffDays > 7) return false;
+            if (timeVal === '30d' && diffDays > 30) return false;
+          }
+        }
+        // 页面筛选
+        if (pageVal !== 'all' && r[1] !== pageVal) return false;
+        // 类型筛选
+        if (typeVal !== 'all') {
+          const source = r[11] || '';
+          const isAction = ACTION_NAMES.some(a => source.includes(a));
+          if (typeVal === 'action' && !isAction) return false;
+          if (typeVal === 'visit' && isAction) return false;
+        }
+        // 搜索
+        if (searchVal) {
+          const haystack = (r[2] + ' ' + r[7] + ' ' + r[8] + ' ' + r[6]).toLowerCase();
+          if (!haystack.includes(searchVal)) return false;
+        }
+        return true;
+      });
+
+      renderOverview(filteredData);
+      renderTable(filteredData);
+      renderPageStats(filteredData);
+      renderCharts(filteredData);
+    }
+
+    function parseDate(str) {
+      if (!str) return null;
+      // 格式: 2026/4/3 17:30:00 或 2026-4-3 17:30:00
+      const m = str.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+      if (m) return new Date(m[1], m[2] - 1, m[3]);
+      return null;
+    }
+
+    // ===== 渲染概览 =====
+    function renderOverview(rows) {
       const total = rows.length;
       const ips = new Set(rows.map(r => r[2]).filter(Boolean));
       const today = new Date().toLocaleDateString('zh-CN');
       const todayCount = rows.filter(r => r[0] && r[0].includes(today)).length;
-
-      // 页面统计
       const pageCounts = {};
-      rows.forEach(r => {
-        const p = r[1] || 'unknown';
-        pageCounts[p] = (pageCounts[p] || 0) + 1;
-      });
+      rows.forEach(r => { const p = r[1] || '?'; pageCounts[p] = (pageCounts[p] || 0) + 1; });
       const sorted = Object.entries(pageCounts).sort((a, b) => b[1] - a[1]);
 
       document.getElementById('totalVisits').textContent = total;
       document.getElementById('uniqueIps').textContent = ips.size;
       document.getElementById('todayVisits').textContent = todayCount;
       document.getElementById('topPage').textContent = sorted[0] ? sorted[0][0].replace('.html','') : '-';
+      document.getElementById('filteredCount').textContent = total;
+    }
 
-      // 页面统计列表
-      const pageDiv = document.getElementById('pageStats');
-      pageDiv.innerHTML = sorted.map(([name, count]) => `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#16213e;border-radius:8px;margin-bottom:6px;border:1px solid #2a2a4a;">
-          <span>${name}</span>
-          <span style="font-weight:bold;color:#a78bfa;font-size:18px;">${count}</span>
-        </div>
-      `).join('');
+    // ===== 渲染页面统计 =====
+    function renderPageStats(rows) {
+      const pageCounts = {};
+      rows.forEach(r => { const p = r[1] || '?'; pageCounts[p] = (pageCounts[p] || 0) + 1; });
+      const sorted = Object.entries(pageCounts).sort((a, b) => b[1] - a[1]);
+      document.getElementById('pageStats').innerHTML = sorted.map(([name, count]) =>
+        '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#16213e;border-radius:8px;margin-bottom:6px;border:1px solid #2a2a4a;"><span>' + name + '</span><span style="font-weight:bold;color:#a78bfa;font-size:18px;">' + count + '</span></div>'
+      ).join('');
+    }
 
-      // 访客列表（最新的在前）
+    // ===== 渲染表格 =====
+    function renderTable(rows) {
       const tbody = document.getElementById('visitorList');
-      const recent = rows.slice().reverse().slice(0, 100);
+      const recent = rows.slice().reverse().slice(0, 200);
       if (recent.length === 0) {
         tbody.innerHTML = '<tr><td colspan="9" class="empty">暂无数据</td></tr>';
         return;
       }
-      // r: [时间0, 页面1, IP2, 城市3, 省份4, 国家5, 设备6, 浏览器7, 系统8, 分辨率9, 语言10, 来源11]
       tbody.innerHTML = recent.map(r => {
-        return `<tr>
-          <td style="white-space:nowrap">${r[0] || '-'}</td>
-          <td><span class="badge badge-page">${r[1] || '-'}</span></td>
-          <td>${r[2] || '-'}</td>
-          <td><span class="badge badge-device">${r[6] || '-'}</span></td>
-          <td>${r[7] || '-'}</td>
-          <td>${r[8] || '-'}</td>
-          <td>${r[9] || '-'}</td>
-          <td>${r[10] || '-'}</td>
-          <td>${r[11] || '-'}</td>
-        </tr>`;
+        const source = r[11] || '-';
+        const isAction = ACTION_NAMES.some(a => source.includes(a));
+        const sourceBadge = isAction
+          ? '<span class="badge badge-action">' + source + '</span>'
+          : source;
+        return '<tr>' +
+          '<td>' + (r[0] || '-') + '</td>' +
+          '<td><span class="badge badge-page">' + (r[1] || '-') + '</span></td>' +
+          '<td>' + (r[2] || '-') + '</td>' +
+          '<td><span class="badge badge-device">' + (r[6] || '-') + '</span></td>' +
+          '<td>' + (r[7] || '-') + '</td>' +
+          '<td>' + (r[8] || '-') + '</td>' +
+          '<td>' + (r[9] || '-') + '</td>' +
+          '<td>' + (r[10] || '-') + '</td>' +
+          '<td>' + sourceBadge + '</td>' +
+        '</tr>';
       }).join('');
+    }
+
+    // ===== 图表 =====
+    const CHART_COLORS = ['#a78bfa','#60a5fa','#6ee76e','#f0abfc','#fbbf24','#f87171','#34d399','#fb923c'];
+
+    function destroyCharts() {
+      Object.values(charts).forEach(c => c.destroy());
+      charts = {};
+    }
+
+    function renderCharts(rows) {
+      destroyCharts();
+
+      // 1. 访问趋势折线图（最近30天，按天）
+      const trendData = {};
+      const now = new Date();
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(now); d.setDate(d.getDate() - i);
+        const key = (d.getMonth() + 1) + '/' + d.getDate();
+        trendData[key] = 0;
+      }
+      rows.forEach(r => {
+        const d = parseDate(r[0]);
+        if (d) {
+          const key = (d.getMonth() + 1) + '/' + d.getDate();
+          if (key in trendData) trendData[key]++;
+        }
+      });
+      charts.trend = new Chart(document.getElementById('chartTrend'), {
+        type: 'line',
+        data: {
+          labels: Object.keys(trendData),
+          datasets: [{ label: '访问量', data: Object.values(trendData), borderColor: '#a78bfa', backgroundColor: 'rgba(167,139,250,0.1)', fill: true, tension: 0.3, pointRadius: 2 }]
+        },
+        options: { plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#555' }, grid: { color: '#1a1a3e' } }, y: { ticks: { color: '#555' }, grid: { color: '#1a1a3e' }, beginAtZero: true } } }
+      });
+
+      // 2. 工具使用饼图（只统计页面访问，排除按钮操作）
+      const pageVisits = {};
+      rows.filter(r => !ACTION_NAMES.some(a => (r[11]||'').includes(a))).forEach(r => {
+        const p = (r[1] || '?').replace('.html','');
+        pageVisits[p] = (pageVisits[p] || 0) + 1;
+      });
+      charts.pages = new Chart(document.getElementById('chartPages'), {
+        type: 'pie',
+        data: { labels: Object.keys(pageVisits), datasets: [{ data: Object.values(pageVisits), backgroundColor: CHART_COLORS }] },
+        options: { plugins: { legend: { position: 'bottom', labels: { color: '#888', font: { size: 11 } } } } }
+      });
+
+      // 3. 操作排行柱状图（只统计按钮操作）
+      const actionCounts = {};
+      rows.filter(r => ACTION_NAMES.some(a => (r[11]||'').includes(a))).forEach(r => {
+        const a = r[11] || '?';
+        actionCounts[a] = (actionCounts[a] || 0) + 1;
+      });
+      const actionSorted = Object.entries(actionCounts).sort((a, b) => b[1] - a[1]);
+      charts.actions = new Chart(document.getElementById('chartActions'), {
+        type: 'bar',
+        data: {
+          labels: actionSorted.map(a => a[0]),
+          datasets: [{ data: actionSorted.map(a => a[1]), backgroundColor: CHART_COLORS.slice(0, actionSorted.length) }]
+        },
+        options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#555' }, grid: { color: '#1a1a3e' }, beginAtZero: true }, y: { ticks: { color: '#aaa', font: { size: 11 } }, grid: { display: false } } } }
+      });
+
+      // 4. 设备分布环形图
+      const deviceCounts = {};
+      rows.forEach(r => { const d = r[6] || '?'; deviceCounts[d] = (deviceCounts[d] || 0) + 1; });
+      charts.devices = new Chart(document.getElementById('chartDevices'), {
+        type: 'doughnut',
+        data: { labels: Object.keys(deviceCounts), datasets: [{ data: Object.values(deviceCounts), backgroundColor: ['#a78bfa','#60a5fa','#fbbf24'] }] },
+        options: { plugins: { legend: { position: 'bottom', labels: { color: '#888', font: { size: 11 } } } } }
+      });
+
+      // 5. 浏览器分布饼图
+      const browserCounts = {};
+      rows.forEach(r => { const b = r[7] || '?'; browserCounts[b] = (browserCounts[b] || 0) + 1; });
+      charts.browsers = new Chart(document.getElementById('chartBrowsers'), {
+        type: 'pie',
+        data: { labels: Object.keys(browserCounts), datasets: [{ data: Object.values(browserCounts), backgroundColor: CHART_COLORS }] },
+        options: { plugins: { legend: { position: 'bottom', labels: { color: '#888', font: { size: 11 } } } } }
+      });
     }
   </script>
 </body>
