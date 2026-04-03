@@ -138,9 +138,15 @@
       </div>
     </div>
 
-    <!-- 各页面统计 -->
+    <!-- 不蒜子各页面统计 -->
     <div class="section">
-      <h2>各工具访问量</h2>
+      <h2>不蒜子 - 各工具页面 PV</h2>
+      <div id="bszPageStats" style="color:#555">加载中...</div>
+    </div>
+
+    <!-- Google Sheets 各页面统计 -->
+    <div class="section">
+      <h2>Tracker - 各工具访问量</h2>
       <div id="pageStats"></div>
     </div>
 
@@ -212,7 +218,7 @@ function doGet(e) {
 
   <script>
     // 从 localStorage 读取配置
-    // 不蒜子数据加载
+    // 不蒜子全站数据加载
     (function waitBsz() {
       const check = setInterval(() => {
         const pv = document.getElementById('busuanzi_value_site_pv');
@@ -221,10 +227,57 @@ function doGet(e) {
           clearInterval(check);
           document.getElementById('bsz_pv').textContent = pv.textContent;
           document.getElementById('bsz_uv').textContent = uv.textContent;
+          // 全站数据加载完后，开始加载各页面 PV
+          loadBszPageStats();
         }
       }, 300);
       setTimeout(() => clearInterval(check), 10000);
     })();
+
+    // 不蒜子各页面 PV 统计
+    function loadBszPageStats() {
+      const pages = [
+        { name: '首页', url: 'index.html' },
+        { name: '柜号确认单', url: 'container_info.html' },
+        { name: '授权书 - 多格式版', url: 'authorization_letter_multiple.html' },
+        { name: '多功能工具', url: 'muiltiple_tool.html' },
+        { name: '统计面板', url: 'stats.html' },
+      ];
+
+      const container = document.getElementById('bszPageStats');
+      container.innerHTML = '';
+
+      pages.forEach(page => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#16213e;border-radius:8px;margin-bottom:6px;border:1px solid #2a2a4a;';
+        row.innerHTML = '<span>' + page.name + '<br><small style="color:#555">' + page.url + '</small></span><span style="font-weight:bold;color:#a78bfa;font-size:18px;" id="bsz_page_' + page.url + '">-</span>';
+        container.appendChild(row);
+
+        // iframe 方式获取各页面不蒜子 PV
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = page.url;
+        iframe.onload = function() {
+          try {
+            const doc = iframe.contentDocument;
+            const pvSpan = doc.getElementById('busuanzi_value_page_pv');
+            if (pvSpan) {
+              const check = setInterval(() => {
+                if (pvSpan.textContent && pvSpan.textContent !== '') {
+                  clearInterval(check);
+                  document.getElementById('bsz_page_' + page.url).textContent = pvSpan.textContent;
+                  try { document.body.removeChild(iframe); } catch(e) {}
+                }
+              }, 300);
+              setTimeout(() => { clearInterval(check); }, 8000);
+            }
+          } catch(e) {
+            document.getElementById('bsz_page_' + page.url).textContent = '无法获取';
+          }
+        };
+        document.body.appendChild(iframe);
+      });
+    }
 
     // 自动加载数据（直接从 Google Sheets CSV 读取）
     loadData();
