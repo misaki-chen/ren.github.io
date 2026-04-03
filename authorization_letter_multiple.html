@@ -483,7 +483,7 @@
         </label>
         <textarea id="quickBatchInput" rows="10" placeholder="每条记录用键值对格式，记录之间用空行分隔。没有的字段可不写。&#10;&#10;示例（两条记录）：&#10;车牌: 粤BGE633&#10;司机: 龙开飞&#10;司机身份证号: 43052719760213361X&#10;司机手机号: 13802261439&#10;&#10;车牌: 粤BES158&#10;司机: 田杨钊&#10;司机身份证号: 610430198410140015&#10;司机手机号: 13502810512&#10;件数: 100&#10;经手人: 张三&#10;&#10;支持的字段名：车牌/车牌号/车号、司机/姓名/驾驶员、身份证/司机身份证号、手机/电话/司机手机号、件数/提货件数、经手人"></textarea>
         <div style="margin-top:10px; display:flex; gap:10px;">
-          <button class="btn btn-primary btn-sm" onclick="batchImport()">
+          <button class="btn btn-primary btn-sm" onclick="batchImport();trackEvent('批量导入')">
             <span>✨</span><span>批量导入到表格</span>
           </button>
           <button class="btn btn-info btn-sm" onclick="document.getElementById('quickBatchInput').value=''">
@@ -549,11 +549,11 @@
       </div>
 
       <div class="button-group">
-        <button class="btn btn-primary" onclick="previewAll()" style="padding:14px 40px; font-size:16px;">
+        <button class="btn btn-primary" onclick="previewAll();trackEvent('预览全部')" style="padding:14px 40px; font-size:16px;">
           <span>👁️</span>
           <span>预览全部</span>
         </button>
-        <button id="exportBtn" class="btn btn-success" onclick="exportToWord()" style="padding:14px 40px; font-size:16px;">
+        <button id="exportBtn" class="btn btn-success" onclick="exportToWord();trackEvent('导出Word')" style="padding:14px 40px; font-size:16px;">
           <span>📥</span>
           <span>导出Word文档</span>
         </button>

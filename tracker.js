@@ -52,9 +52,38 @@
     img.src = TRACKER_URL + '?' + params + '&_t=' + Date.now();
   }
 
+  // 发送事件（按钮点击等）
+  function trackEvent(action) {
+    var payload = {
+      timestamp: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }),
+      page: pageName,
+      ip: window._trackerIp || '',
+      city: '',
+      region: '',
+      country: '',
+      device: device,
+      browser: browser,
+      os: os,
+      screen: screen.width + 'x' + screen.height,
+      language: navigator.language,
+      referrer: action,  // 用 referrer 字段记录操作名称
+    };
+    var params = Object.keys(payload).map(function(k) {
+      return encodeURIComponent(k) + '=' + encodeURIComponent(payload[k]);
+    }).join('&');
+    var img = new Image();
+    img.src = TRACKER_URL + '?' + params + '&_t=' + Date.now();
+  }
+
+  // 暴露全局方法供页面调用
+  window.trackEvent = trackEvent;
+
   // 简单获取 IP
   fetch('https://api.ipify.org?format=json')
     .then(function(r) { return r.json(); })
-    .then(function(data) { sendData(data.ip); })
+    .then(function(data) {
+      window._trackerIp = data.ip;
+      sendData(data.ip);
+    })
     .catch(function() { sendData(''); });
 })();

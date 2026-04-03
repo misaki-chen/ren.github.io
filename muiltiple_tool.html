@@ -2184,6 +2184,7 @@ B456 CONT002 运输中 处理中
 
     // 生成PDF
     document.getElementById('generatePdfBtn').addEventListener('click', async () => {
+      if (typeof trackEvent === 'function') trackEvent('生成PDF');
       if (selectedImages.length === 0) {
         showAlert('请先选择图片文件', 'warning');
         return;
