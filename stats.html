@@ -254,26 +254,19 @@ function doGet(e) {
 
     async function loadData(url) {
       try {
-        // Google Apps Script 会 302 重定向，用 no-cors + script 方式兼容
-        const cbName = '_trackerCb_' + Date.now();
-        const data = await new Promise((resolve, reject) => {
-          window[cbName] = function(d) { resolve(d); delete window[cbName]; };
-          // 尝试 fetch（GitHub Pages 上可行）
-          fetch(url, { redirect: 'follow' })
-            .then(r => {
-              if (!r.ok) throw new Error('HTTP ' + r.status);
-              return r.json();
-            })
-            .then(resolve)
-            .catch(() => {
-              // 兜底：用 script 标签 JSONP 方式
-              reject(new Error('fetch 失败，请确认 URL 正确且已部署'));
-            });
-        });
+        setStatus('正在加载...', '');
+        const res = await fetch(url, { redirect: 'follow' });
+        const text = await res.text();
+        let data;
+        try { data = JSON.parse(text); } catch(e) {
+          setStatus('返回数据格式错误', 'err');
+          return;
+        }
+        if (!Array.isArray(data)) data = [];
         setStatus('数据加载成功，共 ' + data.length + ' 条记录', 'ok');
         renderData(data);
       } catch(e) {
-        setStatus('加载失败: ' + e.message, 'err');
+        setStatus('加载失败: ' + e.message + '（请确认已提交到 GitHub Pages，本地 file:// 无法加载）', 'err');
       }
     }
 
