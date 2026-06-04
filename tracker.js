@@ -3,7 +3,7 @@
  * v2026.04.03
  */
 (function() {
-  var TRACKER_URL = 'https://script.google.com/macros/s/AKfycbylXqKiqxI7yi2cy49i6xrO9-vuZYKn6McWo7wcoS9w2phAEegFLc13vhTOxN_UhscU/exec';
+  var TRACKER_URL = 'https://script.google.com/macros/s/AKfycbz8GB8YDwLkTuZQZtctWO5vPEzxEcp4tHpTtLa5kEK5MYOJW2-w4FgD7IbFU55rXmBZ/exec';
   if (!TRACKER_URL) return;
 
   // 解析 UA
